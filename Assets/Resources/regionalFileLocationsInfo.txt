@@ -1,7 +1,7 @@
 regionalFileLocations is used to store the paths of regional data.
 It is in format: name of user, path to src, path to output
 
-The program expects the files in this format
+The program expects the src files in this format
 enclosing path
     ∟ name of region (lowercase)
         ∟ heights file (must contain the word "height")
