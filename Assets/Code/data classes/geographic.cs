@@ -1,41 +1,28 @@
-using System;
-using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
-public struct geographic
-{
+/// <summary> Represents latitude (-90 to 90) and longitude (-180 to 180). </summary>
+/// <remarks> Unless otherwise specified, functions will modify the host (rather then return a new position). 
+/// <para> Given in (lat, lon) format, NOT (lon, lat). </para> </remarks>
+public struct geographic {
+    #region VARIABLES
     public double lat, lon;
-    public geographic(double lat, double lon)
-    {
+    #endregion
+
+    #region CONSTRUCTORS
+    /// <summary> Takes lat lon values and clamps them to -90 to 90 and -180 to 180 respectively. </summary>
+    /// <remarks> Note that 0-180 and 0-360 are very different than the current -90 to 90/-180 to 180 system- the conversion is not just a +range/2. </remarks>
+    public geographic(double lat, double lon) {
         this.lat = Math.Min(Math.Max(-90, lat), 90);
         this.lon = Math.Min(Math.Max(-180, lon), 180);
     }
+    #endregion
 
-    /// <summary> Parse DMS format. DO NOT USE WITH DECIMAL FORMAT </summary>
-    public geographic(string lat, string lon) {
-        double latSign = lat.Last() == 'S' ? -1 : 1;
-        double lonSign = lon.Last() == 'W' ? -1 : 1;
-
-        this.lat = latSign * parseDmsStringToDecimal(general.combineCharArray(lat.Take(lat.Length - 1).ToArray()));
-        this.lon = lonSign * parseDmsStringToDecimal(general.combineCharArray(lon.Take(lon.Length - 1).ToArray()));
-    }
-
-    // degree minute second
-    public static double parseDmsStringToDecimal(string dms) {
-        int sIndex = dms[dms.Length - 2] == '.' ? -4 : -2;
-        int mIndex = sIndex - 2;
-        double degree = double.Parse(general.combineCharArray(dms.Take(dms.Length + mIndex).ToArray()));
-        double minute = double.Parse(dms.Substring(dms.Length + mIndex, (dms.Length + sIndex) - (dms.Length + mIndex)));
-        double second = double.Parse(dms.Substring(dms.Length + sIndex));
-
-        return degree + ((minute + (second / 60.0)) / 60.0);
-    }
-
+    #region INSTANCE METHODS
     /// <summary> Converts lat, lon into a cartesian point centered on (0, 0) with length radius </summary>
-    public position toCartesian(double radius)
-    {
+    public position toCartesian(double radius) {
         this.lat = Math.Min(Math.Max(-90, lat), 90);
         this.lon = Math.Min(Math.Max(-180, lon), 180);
 
@@ -48,25 +35,8 @@ public struct geographic
             radius * Math.Sin(lt));
     }
 
-    /// <summary> Takes a point centered on (0, 0) with unknown length, and converts it into geo </summary>
-    public static geographic toGeographic(position point, double radius)
-    {
-        // draw point onto planet
-        double dist = position.distance(new position(0, 0, 0), point);
-        double div = radius / dist;
-
-        position p = new position(
-            point.x * div,
-            point.y * div,
-            point.z * div);
-
-        return new geographic(
-            Math.Asin(p.y / radius) * (180.0 / Math.PI),
-            Math.Atan2(p.z, p.x) * (180.0 / Math.PI));
-    }
-
-    /// <summary> Gets the distance between two geographic points, assuming the shortest path is on the sphere with radius </summary>
-    public double distanceKm(geographic g, double radius) {
+    /// <summary> Gets the distance between two geographic points on a sphere. </summary>
+    public double geographicDistanceTo(geographic g, double radius) {
         double lt1 = this.lat * (Math.PI / 180.0);
         double ln1 = this.lon * (Math.PI / 180.0);
         double lt2 = g.lat * (Math.PI / 180.0);
@@ -79,11 +49,45 @@ public struct geographic
             (Math.Sin((ln2 - ln1) / 2.0) * Math.Sin((ln2 - ln1) / 2.0))));
     }
 
-    public double distAs2DVector(geographic g) => Math.Sqrt(
-        (g.lat - this.lat) * (g.lat - this.lat) + (g.lon - this.lon) * (g.lon - this.lon));
-    
-    public double magnitude() => Math.Sqrt(lat * lat + lon * lon);
+    /// <summary> Gets the euclidean distance to another geographic point. </summary>
+    public double euclideanDistanceTo(geographic g) => Math.Sqrt((g.lat - this.lat) * (g.lat - this.lat) + (g.lon - this.lon) * (g.lon - this.lon));
 
+    /// <summary> Treat this point as a 2D vector and get the magnitude of it. </summary>
+    public double magnitude() => Math.Sqrt(lat * lat + lon * lon);
+    #endregion
+
+    #region STATIC METHODS
+    /// <summary> Takes a point centered on (0, 0) with unknown length, and converts it into geo </summary>
+    public static geographic toGeographic(position point, double radius) {
+        // draw point onto planet
+        double dist = new position(0, 0, 0).distanceTo(point);
+        double div = radius / dist;
+
+        position p = new position(
+            point.x * div,
+            point.y * div,
+            point.z * div);
+
+        return new geographic(
+            Math.Asin(p.y / radius) * (180.0 / Math.PI),
+            Math.Atan2(p.z, p.x) * (180.0 / Math.PI));
+    }
+
+    public static position toCartesian(double lat, double lon, double radius) {
+        lat = Math.Min(Math.Max(-90, lat), 90);
+        lon = Math.Min(Math.Max(-180, lon), 180);
+
+        double lt = lat * (Math.PI / 180.0);
+        double ln = lon * (Math.PI / 180.0);
+
+        return new position(
+            radius * Math.Cos(lt) * Math.Cos(ln),
+            radius * Math.Cos(lt) * Math.Sin(ln),
+            radius * Math.Sin(lt));
+    }
+    #endregion
+
+    #region OVERRIDES/OPERATORS
     public static geographic operator+(geographic g1, geographic g2) => new geographic(g1.lat + g2.lat, g1.lon + g2.lon);
     public static geographic operator-(geographic g1, geographic g2) => new geographic(g1.lat - g2.lat, g1.lon - g2.lon);
     public static geographic operator*(geographic g1, double d) => new geographic(g1.lat * d, g1.lon * d);
@@ -111,4 +115,5 @@ public struct geographic
         }
     }
     public override string ToString() => $"Latitude: {lat} | Longitude {lon}";
+    #endregion
 }

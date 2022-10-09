@@ -1,85 +1,62 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
+using System.Linq;
+using TMPro;
 
-/// <summary> Static class that holds most common information regarding frontend stuff. </summary>
-/// <remarks>See <see cref="master"/> for the backend version of <see cref="general"/>. </remarks>
-public static class general
-{
-    /// <summary> Reference to the player's camera in the scene. </summary>
-    /// <remarks> Use this instead of <see cref="Camera.main"/> as this is much more efficient. </remarks>
-    public static Camera camera;
-    /// <summary> The Canvas for the UI. </summary>
-    public static Canvas canvas;
-    /// <summary> Reference to the gameObject that holds all the planets. </summary>
-    public static GameObject planetParent;
+/// <summary> Class that holds general, non-backend, information that is needed by multiple scripts. </summary>
+/// <remarks> See <see cref="master"/> for the backend version of this class. </summary>
+public static class general {
+    #region PREFABS
+    /// <summary> Prefab of a body. </summary>
+    public static GameObject bodyPrefab = Resources.Load("prefabs/body") as GameObject;
+    public static GameObject labelPrefab = Resources.Load("prefabs/label") as GameObject;
+    public static GameObject facilityPrefab = Resources.Load("prefabs/facility") as GameObject;
+    #endregion
 
-    /// <summary> Default position of the camera. </summary>
-    public static Vector3 defaultCameraPosition = new Vector3(0, 0, -10);
+    #region MATERIALS
+    public static Material defaultMat = Resources.Load("materials/default") as Material;
+    public static Material earthMat = Resources.Load("materials/earth") as Material;
+    public static Material moonMat = Resources.Load("materials/moon") as Material;
+    #endregion
 
-    /// <summary> Default FOV of camera. </summary>
-    public static float defaultCameraFOV = 60;
-    public static event EventHandler onStatusChange = delegate {};
-    public static void notifyStatusChange() {
-        onStatusChange(null, EventArgs.Empty); 
-        showingTrails = false;
-        notifyTrailsChange();
+    #region OBJECTS IN SCENE
+    /// <summary> Parent that holds all bodies. </summary>
+    public static Transform bodyParent = GameObject.FindGameObjectWithTag("bodyParent").transform;
+    public static Transform labelParent = GameObject.FindGameObjectWithTag("ui/labels").transform;
+    public static Canvas canvas = GameObject.FindGameObjectWithTag("canvas").GetComponent<Canvas>();
+    public static Camera camera = Camera.main;
+    #endregion
 
-        if (master.finishedInitalizing) {
-            master.requestScaleUpdate();
-            master.requestPositionUpdate();
-        }
-    }
-    public static event EventHandler onTrailChange = delegate {};
-    public static void notifyTrailsChange() {onTrailChange(null, EventArgs.Empty);}
+    #region TERRAIN
+    public static string[] regionalFileLocations = (Resources.Load("regionalFileLocations") as TextAsset).text.Split('\n');
+    public static string regionalFileHostLocation = ((Resources.Load("regionalFileLocations") as TextAsset).text.Split('\n')).FirstOrDefault(x => x.Contains(Application.streamingAssetsPath.Split('/')[2]));
+    public static string host = Application.streamingAssetsPath.Split('/')[2];
+    #endregion
 
-    public static bool blockMainLoop = false;
-    public static planetTerrain pt;
-    public static poleTerrain plt;
-    public static bool showingTrails = false;
+    #region STATIC METHODS
+    public static void drawTextOverObject(TextMeshProUGUI text, Vector3 dest) {
+        Vector3 p = getScreenPosition(dest);
+        text.rectTransform.anchoredPosition = p;
 
-    /// <summary> Parse an array of bytes into a string. </summary>
-    public static string parseByteArray(byte[] data) {
-        string output = "";
-        foreach (byte b in data) {
-            output += (char) b;
-        }
-        return output;
+        if (p.z < 0) text.enabled = false;
+        else if (!text.enabled) text.enabled = true;
     }
 
-    /// <summary> Combine an array of chars into a string. </summary>
-    public static string combineCharArray(char[] data) {
-        string output = "";
-        foreach (char b in data) {
-            output += b;
-        }
-        return output;
+    public static Vector3 getScreenPosition(Vector3 pos) {
+        Vector3 screenSize = new Vector3(Screen.width, Screen.height, 0);
+        Vector3 screenPos = general.camera.WorldToScreenPoint(pos) - (screenSize / 2f);
+        
+        screenPos /= canvas.scaleFactor;
+
+        return screenPos;
     }
 
-    public static IEnumerator internalClock(float tickRate, int requestedTicks, Action<int> callback, Action termination)
-    {
-        float timePerTick = 1000f * (60f / tickRate);
-        float tickBucket = 0;
-        int tickCount = 0;
-
-        while (tickCount < requestedTicks)
-        {
-            tickBucket += UnityEngine.Time.deltaTime * 1000f;
-            int ticks = (int) Math.Round((tickBucket - (tickBucket % timePerTick)) / timePerTick);
-            tickBucket -= ticks *  timePerTick;
-
-            for (int i = 0; i < ticks; i++)
-            {
-                callback(tickCount);
-                tickCount++;
-                if (tickCount < requestedTicks) break;
-            }
-
-            // using this timer method instead of WaitForSeconds as it is inaccurate for small numbers
-            yield return new WaitForEndOfFrame();
-        }
-
-        termination();
+    public static float screenSize(MeshRenderer mr, Vector3 pos) {
+        float diameter = mr.bounds.extents.magnitude;
+        float distance = Vector3.Distance(pos, general.camera.transform.position);
+        float angularSize = (diameter / distance) * Mathf.Rad2Deg;
+        return ((angularSize * Screen.height) / general.camera.fieldOfView);
     }
+    #endregion
 }

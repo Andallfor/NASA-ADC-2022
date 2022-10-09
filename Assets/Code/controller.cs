@@ -1,104 +1,115 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
-using System.Linq;
-using UnityEngine.EventSystems;
-using System.IO;
-using UnityEngine.SceneManagement;
+
+public class controller : MonoBehaviour {
+    planet sun, earth, moon;
+    facility haworth;
+    public bool usingTerrain = false;
+    void Awake() {
+        //terrain.processRegion("haworth", 4, 6);
+
+        sun = new planet(
+            new bodyInfo("sun", 696340, new timeline(), bodyType.sun),
+            new bodyRepresentationInfo(general.defaultMat));
+        earth = new planet(
+            new bodyInfo("earth", 6371, new timeline(1.494757194768592E+08, 1.684950075464667E-02, 4.160341414638201E-03, 2.840153557215478E+02, 1.818203397569767E+02, 2.704822621765425E+02, time.strDateToJulian("2022 Oct 8 00:00:00.0000"), 3.986004418e14), bodyType.planet),
+            new bodyRepresentationInfo(general.earthMat));
+        moon = new planet(
+            new bodyInfo("moon", 1737.4, new timeline(0.3844e5, 0.0549, 5.145, 308.92, 0, 0, 0, 4902.800066), bodyType.moon),
+            new bodyRepresentationInfo(general.moonMat));
+        haworth = new facility("Haworth", new geographic(-86.9, -4), moon);
 
 
+        body.addFamilyNode(sun, earth);
+        body.addFamilyNode(earth, moon);
 
-public class controller : MonoBehaviour
-{
-    public static planet earth, moon;
-    public static planet mars;
-    public static planet defaultReferenceFrame;
-    public static double speed = 0.00005;
-    public static int tickrate = 7200;
-    private Vector3 planetFocusMousePosition, planetFocusMousePosition1;
-    private Coroutine loop;
-    public static bool useTerrainVisibility = false;
-    public static controller self;
+        sun.representation.GetComponent<MeshRenderer>().enabled = false;
+        sun.updateScale();
+        earth.updateScale();
+        moon.updateScale();
 
-    private void Awake() {self = this;}
-
-    private void Start() {
-        general.canvas = GameObject.FindGameObjectWithTag("ui/canvas").GetComponent<Canvas>();
-        general.planetParent = GameObject.FindGameObjectWithTag("planet/parent");
-        uiHelper.canvas = GameObject.FindGameObjectWithTag("ui/canvas").GetComponent<Canvas>();
-        general.camera = Camera.main;
-
-        master.sun = new planet("Sun", new planetData(695700, rotationType.none, "CSVS/ARTEMIS 3/PLANETS/sun", 0.0416666665, planetType.planet),
-            new representationData(
-                "Prefabs/Planet",
-                "Materials/planets/sun"));
-
-        loadingController.start(new Dictionary<float, string>() {
-            {0, "Generating Planets"},
-            {0.10f, "Generating Satellites"},
-            {0.75f, "Generating Terrain"}
-        });
-
-        StartCoroutine(start());
+        master.sun = sun;
+        master.referenceFrame = moon;
     }
 
-    IEnumerator start()
-    {
-        defaultReferenceFrame = moon;
-        //onlyEarth();
+    private Vector3 planetFocusMousePosition, planetFocusMousePosition1, rotation;
 
-        yield return new WaitForSeconds(0.1f);
-        general.plt = loadPoles();
+    public void Update() {
+        earth.updatePosition();
+        moon.updatePosition();
+        haworth.update();
 
-        //runScheduling();
-        //csvParser.loadScheduling("CSVS/SCHEDULING/July 2021 NSN DTE Schedule");
+        master.incrementTime(0.0001);
 
-        master.setReferenceFrame(master.allPlanets.First(x => x.name == "Luna"));
-        master.pause = false;
-        general.camera = Camera.main;
+        if (Input.GetMouseButtonDown(0)) planetFocusMousePosition = Input.mousePosition;
+        else if (Input.GetMouseButton(0)) {
+            Vector3 difference = Input.mousePosition - planetFocusMousePosition;
+            planetFocusMousePosition = Input.mousePosition;
 
-        //runDynamicLink();
-        //linkBudgeting.accessCalls("C:/Users/akazemni/Desktop/connections.txt");
+            Vector2 adjustedDifference = new Vector2(-difference.y / Screen.height, difference.x / Screen.width);
+            adjustedDifference *= 100f;
 
-        master.markStartOfSimulation();
+            rotation.x = adjustedDifference.x;
+            rotation.y = adjustedDifference.y;
+            rotation.z = 0;
+        }
 
-        loadingController.addPercent(0.26f);
-        startMainLoop();
+        if (Input.GetMouseButtonDown(1)) planetFocusMousePosition1 = Input.mousePosition;
+        if (Input.GetMouseButton(1)) {
+            Vector3 difference = Input.mousePosition - planetFocusMousePosition1;
+            planetFocusMousePosition1 = Input.mousePosition;
 
-        //Debug.Log(position.J2000(new position(0, 1, 0), new position(0, 0, -1), new position(0, 1, 0)));
-    }
+            float adjustedDifference = (difference.x / Screen.width) * 100;
+            rotation.x = 0;
+            rotation.y = 0;
+            rotation.z = adjustedDifference;
+        }
 
+        if (Input.mouseScrollDelta.y != 0) {
+            float change = (float) (0.1 * master.scale) * Mathf.Sign(Input.mouseScrollDelta.y);
+            master.scale -= change;
 
-    public void startMainLoop(bool force = false) {
-        if (loop != null && force == false) return;
+            earth.updateScale();
+            moon.updateScale();
+            haworth.updateScale();
+        }
 
-        loop = StartCoroutine(general.internalClock(tickrate, int.MaxValue, (tick) => {
-            if (!general.blockMainLoop) {
-                if (master.pause) {
-                    master.tickStart(master.time);
-                    master.time.addJulianTime(0);
-                } else {
-                    Time t = new Time(master.time.julian);
-                    t.addJulianTime(speed);
-                    master.tickStart(t);
-                    master.time.addJulianTime(speed);
+        general.camera.transform.RotateAround(Vector3.zero, general.camera.transform.right, rotation.x);
+        general.camera.transform.RotateAround(Vector3.zero, general.camera.transform.up, rotation.y);
+        general.camera.transform.rotation *= Quaternion.AngleAxis(rotation.z, Vector3.forward);
+
+        if (!usingTerrain) {
+            Vector3 screenPos = general.camera.WorldToScreenPoint(haworth.representation.transform.position);
+            float dist = Vector3.Distance(screenPos, Input.mousePosition);
+            float size = general.screenSize(haworth.representation.GetComponent<MeshRenderer>(), haworth.representation.transform.position) / 2.5f;
+            if (dist < size) {
+                haworth.indicateSelection();
+
+                if (Input.GetMouseButtonDown(0)) {
+                    usingTerrain = true;
+                    haworth.parent.representation.SetActive(false);
+                    haworth.label.gameObject.SetActive(false);
+                    general.camera.transform.position = new Vector3(0, 0, -20);
+                    general.camera.transform.eulerAngles = new Vector3(0, 0, 0);
+
+                    for (int i = 0; i < 3; i++) {
+                        for (int j = 0; j < 3; j++) {
+                            terrain.generate("haworth", 6, i, j);
+                        }
+                    }
                 }
+            } else haworth.indicateDeselection();
+        } else {
+            terrain.update();
+
+            if (Input.GetKeyDown(KeyCode.Escape)) {
+                usingTerrain = false;
+                haworth.parent.representation.SetActive(true);
+                terrain.clearMeshes();
+                haworth.label.gameObject.SetActive(true);
+                master.playerPosition = new position(0, 0, 0);
             }
-
-            master.currentTick = tick;
-
-            master.markTickFinished();
-        }, null));
-    }
-
-    private poleTerrain loadPoles() {
-        string p = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MVT/terrain");
-        //string p = Path.Combine(Application.dataPath, "terrain");
-        return new poleTerrain(new Dictionary<int, string>() {
-            {5,  Path.Combine(p, "polesBinary/25m")},
-            {10, Path.Combine(p, "polesBinary/50m")},
-            {20, Path.Combine(p, "polesBinary/100m")}
-        }, moon.representation.gameObject.transform);
+        }
     }
 }

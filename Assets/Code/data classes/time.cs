@@ -1,51 +1,57 @@
 using System.Collections;
 using System.Collections.Generic;
-using System;
 using UnityEngine;
+using System;
 
-public class Time
-{
+/// <summary> Represents a specific timestamp. Given in either julian or gregorian format. </summary>
+/// <remarks> Gregorian is provided via <see cref="DateTime"/>. </remarks>
+public struct time {
+    #region VARIABLES
+    /// <summary> The stored time in julian. </summary>
     public double julian {get; private set;}
+
+    /// <summary> The stored time in julian century. </summary>
     public double julianCentury {get {return (this.julian - 2451545.0) / 36525.0;}}
+
+    /// <summary> The stored time in gregorian. </summary>
     public DateTime date {get; private set;}
-    public event EventHandler onChange;
+    #endregion
 
-    private bool sendEvent;
-
-    public Time(double julian, bool sendEvent = false)
-    {
+    #region CONSTRUCTORS
+    /// <summary> Initialize a time with a julian time. </summary>
+    public time(double julian) {
         this.julian = julian;
         this.date = julianToDate(julian);
-        this.sendEvent = sendEvent;
-        onChange = delegate {};
     }
 
-    public Time(DateTime date, bool sendEvent = false)
-    {
+    /// <summary> Initialize a time via DateTime (gregorian). </summary>
+    public time(DateTime date) {
         this.julian = dateToJulian(date);
         this.date = date;
-        this.sendEvent = sendEvent;
-        onChange = delegate {};
     }
+    #endregion
 
-    public void addJulianTime(double value, bool silent = false)
-    {
+    #region PRIVATE METHODS
+    private static double copySign(double n, double s) => Math.Sign(s) * n;
+    #endregion
+
+    #region INSTANCE METHODS
+    /// <summary> Adds a julian value to the current time. </summary>
+    public void addJulianTime(double value) {
         this.julian += value;
         this.date = julianToDate(this.julian);
-
-        if (this.sendEvent && !silent) onChange(null, EventArgs.Empty);
     }
 
-    public void addDateTime(TimeSpan value, bool silent = false)
-    {
+    /// <summary> Adds a TimeSpan (the difference between two DateTimes) to the current time. </summary>
+    public void addDateTime(TimeSpan value) {
         this.date.Add(value);
         this.julian = dateToJulian(this.date);
-
-        if (this.sendEvent && !silent) onChange(null, EventArgs.Empty);
     }
+    #endregion
 
-    public static double dateToJulian(DateTime date)
-    {
+    #region STATIC METHODS
+    /// <summary> Convert a DateTime to a julian time. </summary>
+    public static double dateToJulian(DateTime date) {
         double Y = date.Year;
         double M = date.Month;
         double D = date.Day;
@@ -59,8 +65,8 @@ public class Time
         return JDN;
     }
 
-    public static DateTime julianToDate(double julian)
-    {
+    /// <summary> Convert a julian time to a DateTime. </summary>
+    public static DateTime julianToDate(double julian) {
         // https://en.wikipedia.org/wiki/Julian_day#Julian_or_Gregorian_calendar_from_Julian_day_number
         double J = (double) ((int) julian);
         double f = J + 1401 + Math.Floor((Math.Floor((4.0 * J + 274277.0) / 146097) * 3.0) / 4.0) -38;
@@ -83,9 +89,8 @@ public class Time
         return d;
     }
 
-    public static double strDateToJulian(string date)
-    {
-
+    /// <summary> Convert YYYY MMM DD HH:MM:SS.MMMM to time. </summary>
+    public static double strDateToJulian(string date) {
         string[] splitDate = date.Split(new Char[] { ' ', ':'} , System.StringSplitOptions.RemoveEmptyEntries);
 
         double month = 0;
@@ -115,23 +120,23 @@ public class Time
 
         return JDN;
     }
+    #endregion
 
-    public static double percentPastMidnight(DateTime d) => (d.Hour * 3600.0 + d.Minute * 60 + d.Second) / 86400.0;
-    private static double copySign(double n, double s) => Math.Sign(s) * n;
-
+    #region OVERRIDES/OPERATORS
     public override int GetHashCode() => (int) (this.julian * 1000);
     public override bool Equals(object obj)
     {
-        if (!(obj is Time)) return false;
-        Time t = (Time) obj;
+        if (!(obj is time)) return false;
+        time t = (time) obj;
         return t.julian == this.julian;
     }
     public override string ToString() => $"{this.date.ToString("ddd, dd MMM yyyy HH':'mm':'ss 'UTC'")} ({Math.Round(this.julian, 4)})";
 
-    public static bool operator<(Time t1, Time t2) => t1.julian < t2.julian;
-    public static bool operator>(Time t1, Time t2) => t1.julian > t2.julian;
-    public static bool operator<=(Time t1, Time t2) => t1.julian <= t2.julian;
-    public static bool operator>=(Time t1, Time t2) => t1.julian >= t2.julian;
-    public static bool operator==(Time t1, Time t2) => t1.julian == t2.julian;
-    public static bool operator!=(Time t1, Time t2) => t1.julian != t2.julian;
+    public static bool operator<(time t1, time t2) => t1.julian < t2.julian;
+    public static bool operator>(time t1, time t2) => t1.julian > t2.julian;
+    public static bool operator<=(time t1, time t2) => t1.julian <= t2.julian;
+    public static bool operator>=(time t1, time t2) => t1.julian >= t2.julian;
+    public static bool operator==(time t1, time t2) => t1.julian == t2.julian;
+    public static bool operator!=(time t1, time t2) => t1.julian != t2.julian;
+    #endregion
 }

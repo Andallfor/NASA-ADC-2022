@@ -1,0 +1,18 @@
+regionalFileLocations is used to store the paths of regional data.
+It is in format: name of user, path to src, path to output
+
+The program expects the files in this format
+enclosing path
+    ∟ name of region (lowercase)
+        ∟ heights file (must contain the word "height")
+        ∟ latitude file (must contain the word "latitude")
+        ∟ longitude file (must contain the word "longitude")
+        ∟ slopes file (must contain the word "slope")
+
+For example
+C:/Users/leozw/Desktop/adc
+    ∟ haworth
+        ∟ FY23_ADC_Height_Haworth.csv
+        ∟ FY23_ADC_Latitude_Haworth.csv
+        ∟ FY23_ADC_Longitude_Haworth.csv
+        ∟ FY23_ADC_Slope_Haworth.csv
