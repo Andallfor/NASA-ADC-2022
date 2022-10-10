@@ -18,7 +18,7 @@ public class planet : body {
     #endregion
 
     #region OVERRIDES/OPERATORS
-    public override void updatePosition() {
+        public override void updatePosition() {
         position p = (base.requestWorldPosition(master.getCurrentTime()) - master.referenceFrame.requestWorldPosition(master.getCurrentTime()) - master.playerPosition) / master.scale;
         p.swapAxis();
         representation.transform.position = (Vector3) p;
