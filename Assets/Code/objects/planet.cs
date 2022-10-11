@@ -10,7 +10,9 @@ public class planet : body {
 
     #region CONSTRUCTORS
     public planet(bodyInfo info, bodyRepresentationInfo repInfo) : base(info, repInfo) {
-        
+        master.registeredPlanets.Add(this);
+
+        if (info.bodyID == bodyType.sun) master.sun = this;
     }
     #endregion
 

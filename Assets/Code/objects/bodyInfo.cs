@@ -48,8 +48,10 @@ public enum bodyType {
 
 public readonly struct bodyRepresentationInfo {
     public readonly Material mat;
+    public readonly bool visible;
 
-    public bodyRepresentationInfo(Material mat) {
+    public bodyRepresentationInfo(Material mat, bool visible = true) {
         this.mat = mat;
+        this.visible = visible;
     }
 }

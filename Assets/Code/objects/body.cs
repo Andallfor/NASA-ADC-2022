@@ -39,6 +39,8 @@ public abstract class body {
         this.representation = GameObject.Instantiate(general.bodyPrefab, Vector3.zero, Quaternion.identity, general.bodyParent);
         this.representation.GetComponent<MeshRenderer>().material = repInfo.mat;
         this.representation.name = name;
+
+        if (!repInfo.visible) this.representation.GetComponent<MeshRenderer>().enabled = false;
     }
     #endregion
 
