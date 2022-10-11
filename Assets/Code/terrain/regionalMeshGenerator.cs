@@ -7,10 +7,17 @@ using System.Linq;
 
 /// <summary> Brute force generation of regional files. Used in pre-processing of terrain. </summary>
 public class regionalMeshGenerator {
+    #region VARIABLES
     private int multi, numSubMeshes, trueXSize, trueYSize;
     private double radius;
     private string name, basePath, pathToRegion;
+    #endregion
 
+    /// <summary> Generate a region's mesh. Used only in preprocessing, do not actually show to user. </summary>
+    /// <param name="regionName">Name of the region. Must be all lowercase. </param>
+    /// <param name="multi">Sample every xth point. </param>
+    /// <param name="numSubMeshes">Generate numSubMeshes * numSubMeshes amount of meshes. </param>
+    /// <param name="radius">Radius of the planet, in km. </param>
     public regionalMeshGenerator(string regionName, int multi, int numSubMeshes, double radius) {
         this.name = regionName;
         this.multi = multi;
@@ -27,6 +34,8 @@ public class regionalMeshGenerator {
         if (!Directory.Exists(pathToRegion)) throw new Exception($"Could not find region '{regionName}'. Please make sure it is in the correct format. See Resources/regionalFileLocationsInfo.txt for more info.");
     }
 
+    /// <summary> Generate the region. </summary>
+    /// <returns> A dictionary of the meshes. The key is (0, 0) to (numSubMeshes, numSubMeshes) and the mesh is the correlated mesh. </returns>
     public Dictionary<Vector2Int, Mesh> generate() {
         string[] files = Directory.GetFiles(pathToRegion);
         // good code trust

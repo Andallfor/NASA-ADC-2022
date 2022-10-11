@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class controller : MonoBehaviour {
     planet sun, earth, moon;
@@ -11,7 +12,7 @@ public class controller : MonoBehaviour {
 
         sun = new planet(
             new bodyInfo("sun", 696340, new timeline(), bodyType.sun),
-            new bodyRepresentationInfo(general.defaultMat));
+            new bodyRepresentationInfo(general.defaultMat, false));
         earth = new planet(
             new bodyInfo("earth", 6371, new timeline(1.494757194768592E+08, 1.684950075464667E-02, 4.160341414638201E-03, 2.840153557215478E+02, 1.818203397569767E+02, 2.704822621765425E+02, time.strDateToJulian("2022 Oct 8 00:00:00.0000"), 3.986004418e14), bodyType.planet),
             new bodyRepresentationInfo(general.earthMat));
@@ -20,65 +21,52 @@ public class controller : MonoBehaviour {
             new bodyRepresentationInfo(general.moonMat));
         haworth = new facility("Haworth", new geographic(-86.9, -4), moon);
 
-
         body.addFamilyNode(sun, earth);
         body.addFamilyNode(earth, moon);
 
-        sun.representation.GetComponent<MeshRenderer>().enabled = false;
-        sun.updateScale();
-        earth.updateScale();
-        moon.updateScale();
-
-        master.sun = sun;
         master.referenceFrame = moon;
+
+        master.markInit();
+
+        Coroutine mainClock = StartCoroutine(internalClock(3600, int.MaxValue, (tick) => {
+            earth.updatePosition();
+            moon.updatePosition();
+            haworth.update();
+
+            master.incrementTime(0.0001);
+        }, null));
     }
 
-    private Vector3 planetFocusMousePosition, planetFocusMousePosition1, rotation;
+    /// <summary> Accurate clock to ensure that everything updates at roughly the same interval. </summary>
+    public IEnumerator internalClock(float tickRate, int requestedTicks, Action<int> callback, Action termination) {
+        // https://gist.github.com/Andallfor/7c2e9d17e28391a9d800a24be7b3e375
+        float timePerTick = 1000f * (60f / tickRate);
+        float tickBucket = 0;
+        int tickCount = 0;
+
+        while (tickCount < requestedTicks)
+        {
+            tickBucket += UnityEngine.Time.deltaTime * 1000f;
+            int ticks = (int) Mathf.Round((tickBucket - (tickBucket % timePerTick)) / timePerTick);
+            tickBucket -= ticks *  timePerTick;
+
+            // if we skip a tick(s), make sure to still call it. This behavior can be disabled by just removing
+            // the for loop if undesired.
+            for (int i = 0; i < ticks; i++)
+            {
+                callback(tickCount);
+                tickCount++;
+                if (tickCount < requestedTicks) break;
+            }
+
+            // using this timer method instead of WaitForSeconds as it is inaccurate for small numbers.
+            yield return new WaitForEndOfFrame();
+        }
+
+        termination();
+    }
 
     public void Update() {
-        earth.updatePosition();
-        moon.updatePosition();
-        haworth.update();
-
-        master.incrementTime(0.0001);
-
-        if (Input.GetMouseButtonDown(0)) planetFocusMousePosition = Input.mousePosition;
-        else if (Input.GetMouseButton(0)) {
-            Vector3 difference = Input.mousePosition - planetFocusMousePosition;
-            planetFocusMousePosition = Input.mousePosition;
-
-            Vector2 adjustedDifference = new Vector2(-difference.y / Screen.height, difference.x / Screen.width);
-            adjustedDifference *= 100f;
-
-            rotation.x = adjustedDifference.x;
-            rotation.y = adjustedDifference.y;
-            rotation.z = 0;
-        }
-
-        if (Input.GetMouseButtonDown(1)) planetFocusMousePosition1 = Input.mousePosition;
-        if (Input.GetMouseButton(1)) {
-            Vector3 difference = Input.mousePosition - planetFocusMousePosition1;
-            planetFocusMousePosition1 = Input.mousePosition;
-
-            float adjustedDifference = (difference.x / Screen.width) * 100;
-            rotation.x = 0;
-            rotation.y = 0;
-            rotation.z = adjustedDifference;
-        }
-
-        if (Input.mouseScrollDelta.y != 0) {
-            float change = (float) (0.1 * master.scale) * Mathf.Sign(Input.mouseScrollDelta.y);
-            master.scale -= change;
-
-            earth.updateScale();
-            moon.updateScale();
-            haworth.updateScale();
-        }
-
-        general.camera.transform.RotateAround(Vector3.zero, general.camera.transform.right, rotation.x);
-        general.camera.transform.RotateAround(Vector3.zero, general.camera.transform.up, rotation.y);
-        general.camera.transform.rotation *= Quaternion.AngleAxis(rotation.z, Vector3.forward);
-
         if (!usingTerrain) {
             Vector3 screenPos = general.camera.WorldToScreenPoint(haworth.representation.transform.position);
             float dist = Vector3.Distance(screenPos, Input.mousePosition);

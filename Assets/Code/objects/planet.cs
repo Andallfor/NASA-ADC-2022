@@ -10,7 +10,9 @@ public class planet : body {
 
     #region CONSTRUCTORS
     public planet(bodyInfo info, bodyRepresentationInfo repInfo) : base(info, repInfo) {
-        
+        master.registeredPlanets.Add(this);
+
+        if (info.bodyID == bodyType.sun) master.sun = this;
     }
     #endregion
 
@@ -18,7 +20,7 @@ public class planet : body {
     #endregion
 
     #region OVERRIDES/OPERATORS
-    public override void updatePosition() {
+        public override void updatePosition() {
         position p = (base.requestWorldPosition(master.getCurrentTime()) - master.referenceFrame.requestWorldPosition(master.getCurrentTime()) - master.playerPosition) / master.scale;
         p.swapAxis();
         representation.transform.position = (Vector3) p;
