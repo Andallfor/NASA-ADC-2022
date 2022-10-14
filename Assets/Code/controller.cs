@@ -5,10 +5,14 @@ using System;
 
 public class controller : MonoBehaviour {
     planet sun, earth, moon;
-    facility haworth;
+    crater haworth, shackletonPeak;
     public bool usingTerrain = false;
     void Awake() {
-        //terrain.processRegion("haworth", 4, 6);
+        //terrain.processRegion("haworth", 6, 4);
+        //terrain.processRegion("peak near shackleton", 6, 4);
+        //return;
+
+        master.onStateChange += terrain.onStateChange;
 
         sun = new planet(
             new bodyInfo("sun", 696340, new timeline(), bodyType.sun),
@@ -19,7 +23,8 @@ public class controller : MonoBehaviour {
         moon = new planet(
             new bodyInfo("moon", 1737.4, new timeline(0.3844e5, 0.0549, 5.145, 308.92, 0, 0, 0, 4902.800066), bodyType.moon),
             new bodyRepresentationInfo(general.moonMat));
-        haworth = new facility("Haworth", new geographic(-86.9, -4), moon);
+        haworth = new crater("Haworth", new geographic(-86.7515237574502, -22.7749958363969), moon, new terrainFilesInfo("haworth", new List<Vector2Int>() {new Vector2Int(6, 4)}));
+        shackletonPeak = new crater("Peak Near Shackleton", new geographic(-88.8012678662351, 123.683478996976), moon, new terrainFilesInfo("peak near shackleton", new List<Vector2Int>() {new Vector2Int(6, 4)}));
 
         body.addFamilyNode(sun, earth);
         body.addFamilyNode(earth, moon);
@@ -29,11 +34,14 @@ public class controller : MonoBehaviour {
         master.markInit();
 
         Coroutine mainClock = StartCoroutine(internalClock(3600, int.MaxValue, (tick) => {
+            master.incrementTime(0.0001);
+
             earth.updatePosition();
             moon.updatePosition();
             haworth.update();
-
-            master.incrementTime(0.0001);
+            shackletonPeak.update();
+            
+            master.notifyUpdateEnd();
         }, null));
     }
 
@@ -64,40 +72,5 @@ public class controller : MonoBehaviour {
         }
 
         termination();
-    }
-
-    public void Update() {
-        if (!usingTerrain) {
-            Vector3 screenPos = general.camera.WorldToScreenPoint(haworth.representation.transform.position);
-            float dist = Vector3.Distance(screenPos, Input.mousePosition);
-            float size = general.screenSize(haworth.representation.GetComponent<MeshRenderer>(), haworth.representation.transform.position) / 2.5f;
-            if (dist < size) {
-                haworth.indicateSelection();
-
-                if (Input.GetMouseButtonDown(0)) {
-                    usingTerrain = true;
-                    haworth.parent.representation.SetActive(false);
-                    haworth.label.gameObject.SetActive(false);
-                    general.camera.transform.position = new Vector3(0, 0, -20);
-                    general.camera.transform.eulerAngles = new Vector3(0, 0, 0);
-
-                    for (int i = 0; i < 3; i++) {
-                        for (int j = 0; j < 3; j++) {
-                            terrain.generate("haworth", 6, i, j);
-                        }
-                    }
-                }
-            } else haworth.indicateDeselection();
-        } else {
-            terrain.update();
-
-            if (Input.GetKeyDown(KeyCode.Escape)) {
-                usingTerrain = false;
-                haworth.parent.representation.SetActive(true);
-                terrain.clearMeshes();
-                haworth.label.gameObject.SetActive(true);
-                master.playerPosition = new position(0, 0, 0);
-            }
-        }
     }
 }

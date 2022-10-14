@@ -20,10 +20,14 @@ public struct position {
     #endregion
 
     #region INSTANCE METHODS
-    public void swapAxis() {
+    /// <summary> Swaps the z and y axis. </summary>
+    /// <returns> Both modifies itself and also returns itself. </summary>
+    public position swapAxis() {
         double a = y;
         y = z;
         z = a;
+
+        return this;
     }
 
     // https://stackoverflow.com/questions/34050929/3d-point-rotation-algorithm

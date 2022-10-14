@@ -15,25 +15,23 @@ public struct geographic {
     /// <summary> Takes lat lon values and clamps them to -90 to 90 and -180 to 180 respectively. </summary>
     /// <remarks> Note that 0-180 and 0-360 are very different than the current -90 to 90/-180 to 180 system- the conversion is not just a +range/2. </remarks>
     public geographic(double lat, double lon) {
-        this.lat = Math.Min(Math.Max(-90, lat), 90);
-        this.lon = Math.Min(Math.Max(-180, lon), 180);
+        double mLat = Math.Abs(lat) % 90.0;
+        double mLon = Math.Abs(lon) % 180.0;
+
+        // wrap lat and lon if out of bounds
+        if (lat > 90) this.lat = -90 + mLat;
+        else if (lat < -90) this.lat = 90 - mLat;
+        else this.lat = lat;
+
+        if (lon > 180) this.lon = -180 + mLon;
+        else if (lon < -180) this.lon = 180 - mLon;
+        else this.lon = lon;
     }
     #endregion
 
     #region INSTANCE METHODS
     /// <summary> Converts lat, lon into a cartesian point centered on (0, 0) with length radius </summary>
-    public position toCartesian(double radius) {
-        this.lat = Math.Min(Math.Max(-90, lat), 90);
-        this.lon = Math.Min(Math.Max(-180, lon), 180);
-
-        double lt = this.lat * (Math.PI / 180.0);
-        double ln = this.lon * (Math.PI / 180.0);
-
-        return new position(
-            radius * Math.Cos(lt) * Math.Cos(ln),
-            radius * Math.Cos(lt) * Math.Sin(ln),
-            radius * Math.Sin(lt));
-    }
+    public position toCartesian(double radius) => geographic.toCartesian(this.lat, this.lon, radius);
 
     /// <summary> Gets the distance between two geographic points on a sphere. </summary>
     public double geographicDistanceTo(geographic g, double radius) {
@@ -54,6 +52,9 @@ public struct geographic {
 
     /// <summary> Treat this point as a 2D vector and get the magnitude of it. </summary>
     public double magnitude() => Math.Sqrt(lat * lat + lon * lon);
+
+    /// <summary> Get the needed rotation (localEulerAngles) to have this geographic be pointing straight up. </summary>
+    public Vector3 rotateToUp() => new Vector3((float) this.lat * -2f, 0, (float) this.lon);
     #endregion
 
     #region STATIC METHODS
@@ -73,12 +74,12 @@ public struct geographic {
             Math.Atan2(p.z, p.x) * (180.0 / Math.PI));
     }
 
+    /// <summary> Converts lat, lon into a cartesian point centered on (0, 0) with length radius </summary>
     public static position toCartesian(double lat, double lon, double radius) {
-        lat = Math.Min(Math.Max(-90, lat), 90);
-        lon = Math.Min(Math.Max(-180, lon), 180);
+        geographic g = new geographic(lat, lon);
 
-        double lt = lat * (Math.PI / 180.0);
-        double ln = lon * (Math.PI / 180.0);
+        double lt = g.lat * (Math.PI / 180.0);
+        double ln = g.lon * (Math.PI / 180.0);
 
         return new position(
             radius * Math.Cos(lt) * Math.Cos(ln),

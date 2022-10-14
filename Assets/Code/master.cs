@@ -23,7 +23,7 @@ public static class master {
 
         foreach (planet p in registeredPlanets) p.updateScale();
     }}
-    private static double _scale = 100;
+    private static double _scale = 1000;
     /// <summary> The current program's time. Use <see cref="getCurrentTime()"/> and <see cref="incrementTime(double)"/> </summary>
     private static time sysTime = new time(2460806.5);
     /// <summary> The position of the player in km. </summary>
@@ -36,6 +36,11 @@ public static class master {
 
     /// <summary> All planets that exist in the program. </summary>
     public static List<planet> registeredPlanets = new List<planet>();
+    /// <summary> All craters that exist in the program. </summary>
+    public static List<crater> registeredCraters = new List<crater>();
+    /// <summary> Remembers the current state of the program (ex if we are display terrain or not). </summary>
+    /// <remarks> See <see cref="changeState(programStates)"/> and <see cref="onStateChange"/> </remarks>
+    public static programStates currentState {get; private set;}
     #endregion
     #endregion VARIABLES
 
@@ -55,5 +60,21 @@ public static class master {
             p.updatePosition();
         }
     }
+    /// <summary> Changes the current program state. Calls <see cref="onStateChange()"/> </summary>
+    public static void changeState(programStates state) {
+        programStates old = currentState;
+        currentState = state;
+
+        onStateChange.Invoke(null, new stateChangeEvent(old, state));
+    }
+    /// <summary> Calls <see cref="onUpdateEnd"/> </summary>
+    public static void notifyUpdateEnd() {onUpdateEnd(null, EventArgs.Empty);}
     #endregion STATIC METHODS
+
+    #region EVENTS
+    /// <summary> Event that is called whenever the state of the program is changed. </summary>
+    public static event EventHandler<stateChangeEvent> onStateChange = delegate {};
+    /// <summary> Event that is called at the end of every tick. </summary>
+    public static event EventHandler onUpdateEnd = delegate {};
+    #endregion EVENTS
 }
