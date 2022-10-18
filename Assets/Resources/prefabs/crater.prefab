@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 7362393478695409720}
   - component: {fileID: 7362393478695409721}
   m_Layer: 0
-  m_Name: facility
+  m_Name: crater
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

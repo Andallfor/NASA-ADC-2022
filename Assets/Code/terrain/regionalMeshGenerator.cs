@@ -62,7 +62,10 @@ public class regionalMeshGenerator {
         + => start of a coordinate/box
         */
 
-        position offset = geographic.toCartesian(lats.Average(), lons.Average(), radius + heights.Average() / 1000.0);
+        double latAvg = lats.Average();
+        double lonAvg = lons.Average();
+        position offset = geographic.toCartesian(latAvg, lonAvg, radius + heights.Average() / 1000.0);
+        Debug.Log($"{name}: {latAvg}, {lonAvg}");
 
         Dictionary<Vector2Int, Mesh> meshes = new Dictionary<Vector2Int, Mesh>();
         int idealWidth = (trueXSize / multi) / numSubMeshes;
@@ -131,12 +134,12 @@ public class regionalMeshGenerator {
         int[] triangles = new int[xSize * ySize * 6];
         for (int d = 0; d < ySize - 1; d++) {
             for (int i = 0; i < xSize - 1; i++) {
-                triangles[tri + 0] = 0 + ver;
-                triangles[tri + 1] = (xSize - 1) + 1 + ver;
-                triangles[tri + 2] = ver + 1;
-                triangles[tri + 3] = 0 + ver + 1;
+                triangles[tri + 5] = 0 + ver;
                 triangles[tri + 4] = (xSize - 1) + 1 + ver;
-                triangles[tri + 5] = ver + (xSize - 1) + 2;
+                triangles[tri + 3] = ver + 1;
+                triangles[tri + 2] = 0 + ver + 1;
+                triangles[tri + 1] = (xSize - 1) + 1 + ver;
+                triangles[tri + 0] = ver + (xSize - 1) + 2;
                 ver++;
                 tri += 6;
             }

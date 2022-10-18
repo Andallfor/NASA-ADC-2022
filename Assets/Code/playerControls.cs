@@ -12,7 +12,15 @@ public class playerControls : MonoBehaviour {
     void Update() {
         if (!master.initialized) return;
 
-        bodyRotation.update();
+        if (master.currentState == programStates.interplanetary || master.currentState == programStates.planetaryTerrain) {
+            bodyRotation.update();
+        }
+
+        if (master.currentState == programStates.planetaryTerrain) {
+            if (Input.GetKeyDown(KeyCode.Escape)) {
+                master.changeState(programStates.interplanetary);
+            }
+        }
     }
 }
 

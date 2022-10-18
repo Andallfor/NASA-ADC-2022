@@ -10,7 +10,8 @@ public static class general {
     #region PREFABS
     public static GameObject bodyPrefab = Resources.Load("prefabs/body") as GameObject;
     public static GameObject labelPrefab = Resources.Load("prefabs/label") as GameObject;
-    public static GameObject facilityPrefab = Resources.Load("prefabs/facility") as GameObject;
+    public static GameObject craterPrefab = Resources.Load("prefabs/crater") as GameObject;
+    public static GameObject buttonPrefab = Resources.Load("prefabs/button") as GameObject;
     #endregion
 
     #region MATERIALS
@@ -38,9 +39,9 @@ public static class general {
 
     #region STATIC METHODS
     /// <summary> Center a piece of text over an object in 3D space. </summary>
-    public static void drawTextOverObject(TextMeshProUGUI text, Vector3 dest) {
+    public static void drawTextOverObject(RectTransform rt, TextMeshProUGUI text, Vector3 dest) {
         Vector3 p = getScreenPosition(dest);
-        text.rectTransform.anchoredPosition = p;
+        rt.anchoredPosition = p;
 
         if (p.z < 0) text.enabled = false;
         else if (!text.enabled) text.enabled = true;
