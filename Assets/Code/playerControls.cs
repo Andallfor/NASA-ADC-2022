@@ -68,7 +68,9 @@ internal class bodyRotationalControls {
         }
         if (rotation.y != 0) {
             rotation.y = (float)(rotation.y * Mathf.Pow((float)0.1, Time.deltaTime));
+            if (Mathf.Abs(rotation.y) < 0.1) { 
                 rotation.y = 0;
             }
+        }
     }
 }
