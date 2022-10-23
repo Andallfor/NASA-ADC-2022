@@ -70,6 +70,5 @@ internal class bodyRotationalControls {
             rotation.y = (float)(rotation.y * Mathf.Pow((float)0.1, Time.deltaTime));
                 rotation.y = 0;
             }
-        }
     }
 }
