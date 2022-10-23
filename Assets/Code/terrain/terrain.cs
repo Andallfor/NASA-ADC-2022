@@ -8,7 +8,7 @@ using System.Linq;
 using Newtonsoft.Json;
 
 public static class terrain {
-    private static List<GameObject> activeMeshes = new List<GameObject>();
+    public static List<GameObject> activeMeshes = new List<GameObject>();
     public static void processRegion(string region, int n, int r) {
         regionalMeshGenerator haworth = new regionalMeshGenerator("haworth", r, n, 1737.4);
         Dictionary<Vector2Int, Mesh> meshes = haworth.generate();

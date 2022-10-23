@@ -8,7 +8,7 @@ public class controller : MonoBehaviour {
     facility haworth;
     public bool usingTerrain = false;
     void Awake() {
-        //terrain.processRegion("haworth", 4, 6);
+        terrain.processRegion("haworth", 4, 6);
 
         sun = new planet(
             new bodyInfo("sun", 696340, new timeline(), bodyType.sun),

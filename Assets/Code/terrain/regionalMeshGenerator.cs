@@ -69,6 +69,9 @@ public class regionalMeshGenerator {
         int idealHeight = (trueYSize / multi) / numSubMeshes;
         int reminderWidth = (trueXSize / multi) - (idealWidth * (numSubMeshes - 1));
         int reminderHeight = (trueYSize / multi) - (idealHeight * (numSubMeshes - 1));
+       
+        Texture2D texture = new Texture2D(4*249, 4*249);
+        
         for (int i = 0; i < numSubMeshes; i++) {
             for (int j = 0; j < numSubMeshes; j++) {
                 int width = (i == numSubMeshes - 1) ? reminderWidth : idealWidth + 1;
@@ -95,9 +98,25 @@ public class regionalMeshGenerator {
                 }
 
                 meshes[new Vector2Int(i, j)] = generateMesh(verts, width, height);
+// Christian's Test Stuff
+                
+                Mesh m = new Mesh();
+                m = meshes[new Vector2Int(i, j)];
+                Color[] gradientArray = new Color[249*249];
+
+                gradientArray = meshTextureGenerator.generateHeightMap(m, 249, 249);
+                texture.SetPixels(i*249, j*249, 249, 249, gradientArray);
+
+    
             }
         }
+        texture.Apply(); 
+        string path = "/Users/christianhall/My Stuff/ADC/FinalHeightMapPart.png";
 
+        byte[] bytes = ImageConversion.EncodeArrayToPNG(texture.GetRawTextureData(), texture.graphicsFormat, (uint)4*249, (uint)4*249);
+        //Write Byte[] to path
+        File.WriteAllBytes (path, bytes);
+        
         return meshes;
     }
 
@@ -144,6 +163,9 @@ public class regionalMeshGenerator {
         }
         m.triangles = triangles;
         m.RecalculateNormals();//Recalculates normals so that lighting works
+
+        //meshTextureGenerator.generateHeightMap(m, xSize, ySize);
+        
 
         return m;
     }
