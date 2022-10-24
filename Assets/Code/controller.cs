@@ -8,8 +8,8 @@ public class controller : MonoBehaviour {
     crater haworth, shackletonPeak;
     public bool usingTerrain = false;
     void Awake() {
-        //terrain.processRegion("haworth", 6, 4);
-        //terrain.processRegion("peak near shackleton", 6, 4);
+        terrain.processRegion("haworth", 6, 4);
+        terrain.processRegion("peak near shackleton", 6, 4);
         //return;
 
         master.onStateChange += terrain.onStateChange;

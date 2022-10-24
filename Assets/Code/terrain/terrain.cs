@@ -11,7 +11,7 @@ public static class terrain {
     private static List<GameObject> activeMeshes = new List<GameObject>();
     public static crater currentCrater;
     public static void processRegion(string region, int r, int n) {
-        regionalMeshGenerator reg = new regionalMeshGenerator(region, r, n, 1737.4);
+        regionalMeshGenerator reg = new regionalMeshGenerator(region, r, n, 1737.4,10);
         Dictionary<Vector2Int, Mesh> meshes = reg.generate();
 
         Dictionary<string, Dictionary<string, long[]>> pos = new Dictionary<string, Dictionary<string, long[]>>();

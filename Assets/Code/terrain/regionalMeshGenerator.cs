@@ -115,17 +115,25 @@ public class regionalMeshGenerator {
                 for (int i = 0; i < values.Length; i++) {
                     var values1 = values[i].Split(',');
                     trueYSize = values1.Length;
-                    
-                    for (int n = 0; n < values1.Length; n++) listA.Add(double.Parse(values1[n]));
+                    trueYSize = (int)Math.Floor((double)((values1.Length) / res));
+
+                    for (int n = 0; n < values1.Length; n += res)
+                    {
+                        listA.Add(double.Parse(values1[n]));
+                    }
                 }
             }
         }
-        trueXSize = listA.Count / trueYSize;
+        trueXSize = (int)Math.Floor((double)(listA.Count / (trueYSize)));
+        //trueYSize -= 1;
+        Debug.Log(trueXSize);
+        Debug.Log(trueYSize);
         return (listA);
     }
 
     /// <summary> Generates a mesh given a vector3 array of vertices. </summary>
     private Mesh generateMesh(Vector3[] vertice, int xSize, int ySize) {
+        
         Mesh m = new Mesh();
         //m.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32; //NEEDS TO BE UINT32 APPARENTLY
         m.vertices = vertice;
