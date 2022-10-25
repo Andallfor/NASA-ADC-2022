@@ -8,9 +8,11 @@ using System.Linq;
 /// <summary> Brute force generation of regional files. Used in pre-processing of terrain. </summary>
 public class regionalMeshGenerator {
     #region VARIABLES
-    private int multi, numSubMeshes, trueXSize, trueYSize;
+    private int multi, numSubMeshes, trueXSize, trueYSize,res,counts;
     private double radius;
     private string name, basePath, pathToRegion;
+    private List<double> lats, lons, heights,slopes;
+    private Gradient gradient;
     #endregion
 
     /// <summary> Generate a region's mesh. Used only in preprocessing, do not actually show to user. </summary>
@@ -18,15 +20,17 @@ public class regionalMeshGenerator {
     /// <param name="multi">Sample every xth point. </param>
     /// <param name="numSubMeshes">Generate numSubMeshes * numSubMeshes amount of meshes. </param>
     /// <param name="radius">Radius of the planet, in km. </param>
-    public regionalMeshGenerator(string regionName, int multi, int numSubMeshes, double radius) {
+    public regionalMeshGenerator(string regionName, int multi, int numSubMeshes, double radius,int res,Gradient gradient) {
         this.name = regionName;
         this.multi = multi;
         this.numSubMeshes = numSubMeshes;
         this.radius = radius;
-
+        this.gradient=gradient;
+        this.res = res;
         // Assumes windows
         // gets the user currently running the program (streamingAssetsPath is C:/Users/name/....)
         // we want 'name' as we use it as the identifier in regionalFileLocations.csv to store the path to the regional files
+
         string host = Application.streamingAssetsPath.Split('/')[2];
         string csvLine = general.regionalFileLocations.First(x => x.Contains(host)); // will throw error if 'name' does not exist
         basePath = csvLine.Split(',')[1].Trim();
@@ -39,9 +43,13 @@ public class regionalMeshGenerator {
     public Dictionary<Vector2Int, Mesh> generate() {
         string[] files = Directory.GetFiles(pathToRegion);
         // good code trust
-        List<double> lats = csvParse(files.First(x => x.ToLower().Contains("latitude")));
-        List<double> lons = csvParse(files.First(x => x.ToLower().Contains("longitude")));
-        List<double> heights = csvParse(files.First(x => x.ToLower().Contains("height")));
+        lats = csvParse(files.First(x => x.ToLower().Contains("latitude")));
+        lons = csvParse(files.First(x => x.ToLower().Contains("longitude")));
+        heights = csvParse(files.First(x => x.ToLower().Contains("height")));
+        slopes = csvParse(files.First(x => x.ToLower().Contains("slope")));
+        counts = lats.Count;
+        generateHeightMap(gradient);
+        generateTextureMap(slopes, "slopes",flipped:true);
 
         /*
                      idealWidth                reminderWidth
@@ -104,17 +112,77 @@ public class regionalMeshGenerator {
         return meshes;
     }
 
+    /// <summary>
+    /// generateHeightMap
+    /// </summary>
+    private void generateHeightMap(Gradient gradient)
+    {
+        double maxY = 0;
+        double minY = 0;
+        List<double> vertice = new List<double>();
+        
+        for (int i = 0; i < counts; i++)
+        {
+            vertice.Add(geographic.toCartesian(lats[i], lons[i], heights[i] + radius).z);
+            
+        }
+        generateTextureMap(vertice, "height",flipped:false);
+    }
+    private void generateTextureMap(List<double> data,string type,bool flipped)
+    {
+        
+        double minY=0;
+        double maxY=0;
+        for(int i=0; i <counts; i++)
+        {
+            if (data[i] > maxY)
+            {
+                maxY = data[i];
+            }
+            else if (data[i] < minY)
+            {
+                minY = data[i];
+            }
+        }
+        Color[] colors = new Color[counts];
+
+
+
+
+        
+        Texture2D tex = new Texture2D(trueXSize, trueYSize);
+        for (int i = 0; i < counts; i++)
+        {
+
+            float height = Mathf.InverseLerp((float)minY, (float)maxY, (float)data[i]);
+
+            colors[i] = gradient.Evaluate(height);
+            //tex.SetPixel(i % vertice.Length, Mathf.FloorToInt(i / vertice.Length), gradient.Evaluate(height));
+
+
+        }
+        
+        
+        tex.SetPixels(colors);
+        //tex.SetPixels(colors);
+        Byte[] bytes = tex.EncodeToPNG();
+        File.WriteAllBytes("C:/Users/ltriv/Downloads/" + name + "_"+type+"_TEXTURE.png", bytes);
+    }
+
     /// <summary> Returns a 1D list (flattened) of all the values in the given regional CSV file. </summary>
     private List<double> csvParse(string path) {
+        
         List<double> listA = new List<double>();
-        using (var reader = new StreamReader(@path)) {
+        using (var reader = new StreamReader(@path))
+        {
             List<double> listB = new List<double>();
-            while (!reader.EndOfStream) {
+            while (!reader.EndOfStream)
+            {
                 var line = reader.ReadLine();
                 var values = line.Split(';');
-                for (int i = 0; i < values.Length; i++) {
+                for (int i = 0; i < values.Length; i += res)
+                {
                     var values1 = values[i].Split(',');
-                    trueYSize = values1.Length;
                     trueYSize = (int)Math.Floor((double)((values1.Length) / res));
 
                     for (int n = 0; n < values1.Length; n += res)
@@ -135,6 +203,7 @@ public class regionalMeshGenerator {
     private Mesh generateMesh(Vector3[] vertice, int xSize, int ySize) {
         
         Mesh m = new Mesh();
+        m.indexFormat= UnityEngine.Rendering.IndexFormat.UInt32;
         //m.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32; //NEEDS TO BE UINT32 APPARENTLY
         m.vertices = vertice;
         int tri = 0;
