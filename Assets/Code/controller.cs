@@ -10,7 +10,7 @@ public class controller : MonoBehaviour {
     public Gradient gradient;
     void Awake() {
         terrain.processRegion("haworth", 20, 1,1,gradient);
-        terrain.processRegion("peak near shackleton", 6, 4,1,gradient);
+        //terrain.processRegion("peak near shackleton", 6, 1,1,gradient);
         
         //return;
 

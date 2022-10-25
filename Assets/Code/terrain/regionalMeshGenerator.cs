@@ -166,7 +166,7 @@ public class regionalMeshGenerator {
         tex.SetPixels(colors);
         //tex.SetPixels(colors);
         Byte[] bytes = tex.EncodeToPNG();
-        File.WriteAllBytes("C:/Users/ltriv/Downloads/" + name + "_"+type+"_TEXTURE.png", bytes);
+        File.WriteAllBytes(general.regionalFileHostLocation.Split(',').Last().Trim() + name + "_"+type+"_TEXTURE.png", bytes);
     }
 
     /// <summary> Returns a 1D list (flattened) of all the values in the given regional CSV file. </summary>
