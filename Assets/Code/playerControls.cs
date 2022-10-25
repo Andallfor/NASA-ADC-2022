@@ -52,12 +52,25 @@ internal class bodyRotationalControls {
         }
 
         if (Input.mouseScrollDelta.y != 0) {
-            float change = (float) (0.1 * master.scale) * Mathf.Sign(Input.mouseScrollDelta.y);
+            float change = (float) (0.1 * (master.scale - 370)) * Mathf.Sign(Input.mouseScrollDelta.y);
             master.scale -= change;
         }
-
+        
         general.camera.transform.RotateAround(Vector3.zero, general.camera.transform.right, rotation.x);
         general.camera.transform.RotateAround(Vector3.zero, general.camera.transform.up, rotation.y);
         general.camera.transform.rotation *= Quaternion.AngleAxis(rotation.z, Vector3.forward);
+        
+        if (rotation.x != 0) {
+            rotation.x = (float)(rotation.x * Mathf.Pow((float)0.1, Time.deltaTime));
+            if (Mathf.Abs(rotation.x) < 0.1) { 
+                rotation.x = 0;
+            }
+        }
+        if (rotation.y != 0) {
+            rotation.y = (float)(rotation.y * Mathf.Pow((float)0.1, Time.deltaTime));
+            if (Mathf.Abs(rotation.y) < 0.1) { 
+                rotation.y = 0;
+            }
+        }
     }
 }
