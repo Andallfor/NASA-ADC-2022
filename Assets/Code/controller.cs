@@ -7,9 +7,11 @@ public class controller : MonoBehaviour {
     planet sun, earth, moon;
     crater haworth, shackletonPeak;
     public bool usingTerrain = false;
+    public Gradient gradient;
     void Awake() {
-        terrain.processRegion("haworth", 6, 4);
-        terrain.processRegion("peak near shackleton", 6, 4);
+        terrain.processRegion("haworth", 20, 1,1,gradient);
+        terrain.processRegion("peak near shackleton", 6, 4,1,gradient);
+        
         //return;
 
         master.onStateChange += terrain.onStateChange;
