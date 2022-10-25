@@ -84,29 +84,6 @@ public static class meshTextureGenerator {
 
             gradientArray[i] = gradient.Evaluate(allVertPerc[i]);
         }
-
-        // EVERYTHING UP TO HERE FUNCTIONS, so it has to be something with whats below.
-        
-
-        
-        // creates new texture 2D named 'texture', then assigns the color[] 'gradientArray' to it
-        //Texture2D texture = new Texture2D(width, height);
-
-
-        //texture.SetPixels(gradientArray);
-
-        //texture.Apply();
-
-        
-        // Encode the bytes in PNG format
-        //byte[] bytes = ImageConversion.EncodeArrayToPNG(texture.GetRawTextureData(), texture.graphicsFormat, (uint)width, (uint)height);
-
-        //System.Random random = new System.Random();
-        //int randNum = random.Next(1,20000);
-        //string path = "/Users/christianhall/My Stuff/ADC/Data"+randNum+".png";
-
-        //Write Bytes to path
-       //File.WriteAllBytes (path, bytes);
         return gradientArray;
           
     }

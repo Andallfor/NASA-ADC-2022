@@ -98,7 +98,6 @@ public class regionalMeshGenerator {
                 }
 
                 meshes[new Vector2Int(i, j)] = generateMesh(verts, width, height);
-// Christian's Test Stuff
                 
                 Mesh m = new Mesh();
                 m = meshes[new Vector2Int(i, j)];
