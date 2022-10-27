@@ -9,7 +9,7 @@ public class controller : MonoBehaviour {
     public bool usingTerrain = false;
     public Gradient gradient;
     void Awake() {
-        terrain.processRegion("haworth", 20, 1,1,gradient);
+        //terrain.processRegion("haworth", 20, 1,1,gradient);
         //terrain.processRegion("peak near shackleton", 6, 1,1,gradient);
         
         //return;
@@ -25,8 +25,8 @@ public class controller : MonoBehaviour {
         moon = new planet(
             new bodyInfo("moon", 1737.4, new timeline(0.3844e5, 0.0549, 5.145, 308.92, 0, 0, 0, 4902.800066), bodyType.moon),
             new bodyRepresentationInfo(general.moonMat));
-        haworth = new crater("Haworth", new geographic(-86.7515237574502, -22.7749958363969), moon, new terrainFilesInfo("haworth", new List<Vector2Int>() {new Vector2Int(6, 4)}));
-        shackletonPeak = new crater("Peak Near Shackleton", new geographic(-88.8012678662351, 123.683478996976), moon, new terrainFilesInfo("peak near shackleton", new List<Vector2Int>() {new Vector2Int(6, 4)}));
+        haworth = new crater("Haworth", new geographic(-86.7515237574502, -22.7749958363969), moon, new terrainFilesInfo("haworth", new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        shackletonPeak = new crater("Peak Near Shackleton", new geographic(-88.8012678662351, 123.683478996976), moon, new terrainFilesInfo("peak near shackleton", new List<Vector2Int>() {new Vector2Int(6, 1)}));
 
         body.addFamilyNode(sun, earth);
         body.addFamilyNode(earth, moon);

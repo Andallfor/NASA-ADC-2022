@@ -56,7 +56,42 @@ public static class terrain {
             go.transform.localEulerAngles = Vector3.zero;
             go.GetComponent<MeshRenderer>().material = general.defaultMat;
             Mesh m = dmd.generate();
+            Vector3[] verts = m.vertices;
+            Vector2[] uvs = new Vector2[verts.Length];
+            float minX = 0;
+            float minY = 0;
+            for (int i = 0; i < verts.Length; i++)
+            {
+                if (verts[i].x > minX)
+                {
+                    minX = verts[i].x;
+                }
+                if (verts[i].z > minY)
+                {
+                    minY = verts[i].z;
+                }
+            }
+            for (int i = 0; i < verts.Length; i++)
+            {
+                verts[i].x += minX;
+                verts[i].z += minY;
+            }
+            for (int i = 0,z =0; i < Mathf.RoundToInt(Mathf.Sqrt(verts.Length)); i++)
+            {
+                for(int n=0;n< Mathf.RoundToInt(Mathf.Sqrt(verts.Length)); n++)
+                {
+                    
+                    uvs[z] = new Vector2((float)(i / Mathf.Sqrt(verts.Length)), (float)(n / Mathf.Sqrt(verts.Length)));
+                    z++;
+                }
+                
+
+            }
+            
+            m.uv = uvs;
+        
             go.GetComponent<MeshFilter>().mesh = m;
+
 
             // the meshes were saved with a master.scale of 1000, however the current scale may not match
             // adjust the scale of the meshes so that it matches master.scale
