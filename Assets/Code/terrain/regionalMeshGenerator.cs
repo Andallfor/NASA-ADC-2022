@@ -48,10 +48,25 @@ public class regionalMeshGenerator {
         heights = csvParse(files.First(x => x.ToLower().Contains("height")));
         slopes = csvParse(files.First(x => x.ToLower().Contains("slope")));
         counts = lats.Count;
-        generateHeightMap(gradient);
-        generateTextureMap(slopes, "slopes",flipped:true);
-
+        //generateHeightMap(gradient);
+        //generateTextureMap(slopes, "slopes",flipped:true);
+        
+        List<double> azimuths = new List<double>();
+        
+        for(int i = 0; i < lons.Count; i++)
+        {
+            azimuths.Add(azimuthAngle(new geographic(lats[i] * Mathf.Deg2Rad, lons[i] * Mathf.Deg2Rad), new geographic(lat: 0.0, lon: 0.0)));
+        }
         /*
+        List<double> elevations = new List<double>();
+        for(int i = 0; i < lats.Count; i++) 
+        {
+            elevations.Add(elevationAngle(new geographic(lats[i]*Mathf.Deg2Rad, lons[i] * Mathf.Deg2Rad), heights[i], 1737.4, new geographic(0, 0), 0, 6371));
+        }
+        generateTextureMap(elevations, "elevationAngles", false);*/
+        generateTextureMap(azimuths, "azimuth", true);
+        /*
+        
                      idealWidth                reminderWidth
             (i,j) (0,0)                      (2,0)
                     +===========+============+======|
@@ -167,6 +182,20 @@ public class regionalMeshGenerator {
         //tex.SetPixels(colors);
         Byte[] bytes = tex.EncodeToPNG();
         File.WriteAllBytes(general.regionalFileHostLocation.Split(',').Last().Trim() + name + "_"+type+"_TEXTURE.png", bytes);
+    }
+    public static double azimuthAngle(geographic moon, geographic earth)
+    {
+        return Mathf.Rad2Deg*Math.Atan2((Math.Sin(earth.lon - moon.lon) * Math.Cos(earth.lat)), ((Math.Cos(moon.lat) * Math.Sin(earth.lat)) - (Math.Sin(moon.lat) * Math.Cos(earth.lat) * Math.Cos(earth.lon - moon.lat))));
+    }
+    public static double elevationAngle(geographic moon, double moonTerrainHeight, double moonRadius, geographic earth, double earthTerrainHeight, double earthRadius)
+    {
+        position mpos = new position((moonRadius + moonTerrainHeight) * Math.Cos(moon.lat) * Math.Cos(moon.lon), (moonRadius + moonTerrainHeight) * Math.Cos(moon.lat) * Math.Sin(moon.lon), (moonRadius + moonTerrainHeight) * Math.Sin(moon.lat));
+        position epos = new position((earthRadius + earthTerrainHeight) * Math.Cos(earth.lat) * Math.Cos(earth.lon), (earthRadius + earthTerrainHeight) * Math.Cos(earth.lat) * Math.Sin(earth.lon), (earthRadius + earthTerrainHeight) * Math.Sin(earth.lat));
+
+        position vector = epos - mpos;
+        double range = Math.Sqrt(Math.Pow(vector.x, 2) + Math.Pow(vector.y, 2) + Math.Pow(vector.z, 2));
+        double rz = vector.x * Math.Cos(moon.lat) * Math.Cos(moon.lon) + vector.y * Math.Cos(moon.lat) * Math.Sin(moon.lon) + vector.z * Math.Sin(moon.lat);
+        return Mathf.Rad2Deg*Math.Asin(rz / range);
     }
 
     /// <summary> Returns a 1D list (flattened) of all the values in the given regional CSV file. </summary>

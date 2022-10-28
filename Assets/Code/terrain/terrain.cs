@@ -10,6 +10,7 @@ using Newtonsoft.Json;
 public static class terrain {
     private static List<GameObject> activeMeshes = new List<GameObject>();
     public static crater currentCrater;
+    
     public static void processRegion(string region, int r, int n,int res,Gradient gradient) {
         regionalMeshGenerator reg = new regionalMeshGenerator(region, r, n, 1737.4,res,gradient);
         Dictionary<Vector2Int, Mesh> meshes = reg.generate();
@@ -163,6 +164,7 @@ public static class terrain {
 
     public static void onStateChange(object s, stateChangeEvent e) {
         if (e.newState == programStates.planetaryTerrain) { // setup
+            
             master.scale = 1;
             terrain.generate(currentCrater.terrainData, 0);
             master.onUpdateEnd += update;
@@ -178,6 +180,7 @@ public static class terrain {
             currentCrater.label.gameObject.SetActive(false);
             currentCrater.button.enabled = false;
         } else if (e.previousState == programStates.planetaryTerrain) { // cleanup
+            
             master.scale = 1000;
             master.onUpdateEnd -= update;
 
