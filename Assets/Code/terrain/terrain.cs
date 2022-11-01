@@ -57,23 +57,7 @@ public static class terrain {
             go.transform.localPosition = Vector3.zero;
             go.transform.localEulerAngles = Vector3.zero;
             go.GetComponent<MeshRenderer>().material = general.defaultMat;
-            Debug.Log(terrainTextureState);
-            if (terrainTextureState == 0)
-            {
-                general.defaultMat.mainTexture = Resources.Load<Texture>("Maps/output" + region + "_"+"slope" + "_TEXTURE");
-            }
-            else if (terrainTextureState == 1)
-            {
-                general.defaultMat.mainTexture = Resources.Load<Texture>("Maps/output" + region + "_" + "height" + "_TEXTURE");
-            }
-            else if (terrainTextureState == 2)
-            {
-                general.defaultMat.mainTexture = Resources.Load<Texture>("Maps/output" + region + "_" + "elevationAngles" + "_TEXTURE");
-            }
-            else if (terrainTextureState == 3)
-            {
-                general.defaultMat.mainTexture = Resources.Load<Texture>("Maps/output" + region + "_" + "azimuth" + "_TEXTURE");
-            }
+            
 
             Mesh m = dmd.generate();
             Vector3[] verts = m.vertices;
