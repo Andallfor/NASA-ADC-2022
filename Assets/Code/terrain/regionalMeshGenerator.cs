@@ -161,8 +161,12 @@ public class regionalMeshGenerator {
         {
 
             float height = Mathf.InverseLerp((float)minY, (float)maxY, (float)data[i]);
-
-            colors[i] = gradient.Evaluate(height);
+            Vector2Int pos = OneDIndexToTwoD(i, trueXSize);
+            int tempx = pos.x;
+            pos.x = pos.y;
+            pos.y = tempx;
+            
+            colors[TwoDIndextoOneD(pos, trueXSize)] = gradient.Evaluate(height);//
             //tex.SetPixel(i % vertice.Length, Mathf.FloorToInt(i / vertice.Length), gradient.Evaluate(height));
 
 
@@ -172,7 +176,15 @@ public class regionalMeshGenerator {
         tex.SetPixels(colors);
         //tex.SetPixels(colors);
         Byte[] bytes = tex.EncodeToPNG();
+        
         File.WriteAllBytes(general.regionalFileHostLocation.Split(',').Last().Trim() + name + "_"+type+"_TEXTURE.png", bytes);
+    }
+    public static int TwoDIndextoOneD(Vector2Int ind,int size) {
+        return (ind.y * size + ind.x);
+    }
+    public static Vector2Int OneDIndexToTwoD(int ind,int size)
+    {
+        return (new Vector2Int(ind%size,Mathf.FloorToInt(ind/size)));
     }
     public static double azimuthAngle(geographic moon, geographic earth)
     {
