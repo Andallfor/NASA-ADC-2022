@@ -48,23 +48,22 @@ public class regionalMeshGenerator {
         heights = csvParse(files.First(x => x.ToLower().Contains("height")));
         slopes = csvParse(files.First(x => x.ToLower().Contains("slope")));
         counts = lats.Count;
-        //generateHeightMap(gradient);
-        //generateTextureMap(slopes, "slopes",flipped:true);
+        for (int i=0;i<counts;i++)
+        {
+            slopes[i] = Math.Abs(slopes[i]);
+        }
+        generateHeightMap(gradient);
+        generateTextureMap(slopes, "slopes",flipped:false);
         
         List<double> azimuths = new List<double>();
-        
-        for(int i = 0; i < lons.Count; i++)
+        List<double> elevations = new List<double>();
+        for (int i = 0; i < lons.Count; i++)
         {
             azimuths.Add(azimuthAngle(new geographic(lats[i] * Mathf.Deg2Rad, lons[i] * Mathf.Deg2Rad), new geographic(lat: 0.0, lon: 0.0)));
+            elevations.Add(elevationAngle(new geographic(lats[i] * Mathf.Deg2Rad, lons[i] * Mathf.Deg2Rad), heights[i], 1737.4, new geographic(0, 0), 0, 6371));
         }
-        /*
-        List<double> elevations = new List<double>();
-        for(int i = 0; i < lats.Count; i++) 
-        {
-            elevations.Add(elevationAngle(new geographic(lats[i]*Mathf.Deg2Rad, lons[i] * Mathf.Deg2Rad), heights[i], 1737.4, new geographic(0, 0), 0, 6371));
-        }
-        generateTextureMap(elevations, "elevationAngles", false);*/
-        generateTextureMap(azimuths, "azimuth", true);
+        generateTextureMap(elevations, "elevationAngles", false);
+        generateTextureMap(azimuths, "azimuth", false);
         /*
         
                      idealWidth                reminderWidth
@@ -132,8 +131,7 @@ public class regionalMeshGenerator {
     /// </summary>
     private void generateHeightMap(Gradient gradient)
     {
-        double maxY = 0;
-        double minY = 0;
+        
         List<double> vertice = new List<double>();
         
         for (int i = 0; i < counts; i++)
@@ -145,20 +143,13 @@ public class regionalMeshGenerator {
     }
     private void generateTextureMap(List<double> data,string type,bool flipped)
     {
+
+        double minY = data.Min();
+        Debug.Log(type);
+        Debug.Log(minY);
         
-        double minY=0;
-        double maxY=0;
-        for(int i=0; i <counts; i++)
-        {
-            if (data[i] > maxY)
-            {
-                maxY = data[i];
-            }
-            else if (data[i] < minY)
-            {
-                minY = data[i];
-            }
-        }
+        double maxY= data.Max();
+        
         Color[] colors = new Color[counts];
 
 
