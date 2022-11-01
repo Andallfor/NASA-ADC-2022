@@ -38,6 +38,7 @@ public class controller : MonoBehaviour {
         master.referenceFrame = moon;
 
         master.markInit();
+        
 
         Coroutine mainClock = StartCoroutine(internalClock(3600, int.MaxValue, (tick) => {
             master.incrementTime(0.0001);

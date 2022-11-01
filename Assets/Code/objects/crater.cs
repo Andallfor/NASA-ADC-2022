@@ -46,7 +46,23 @@ public class crater {
         position p = geo.toCartesian(parent.information.radius + 5.0) / (2.0 * parent.information.radius);
         p.swapAxis();
         representation.transform.localPosition = (Vector3) p;
-
+        Debug.Log(terrain.terrainTextureState);
+        if (terrain.terrainTextureState == 0)
+        {
+            general.defaultMat.mainTexture = Resources.Load<Texture>("Maps/output" + name + "_slopes" + "_TEXTURE");
+        }
+        else if (terrain.terrainTextureState == 1)
+        {
+            general.defaultMat.mainTexture = Resources.Load<Texture>("Maps/output" + name + "_" + "height" + "_TEXTURE");
+        }
+        else if (terrain.terrainTextureState == 2)
+        {
+            general.defaultMat.mainTexture = Resources.Load<Texture>("Maps/output" + name + "_" + "elevationAngles" + "_TEXTURE");
+        }
+        else if (terrain.terrainTextureState == 3)
+        {
+            general.defaultMat.mainTexture = Resources.Load<Texture>("Maps/output" + name + "_" + "azimuth" + "_TEXTURE");
+        }
         RaycastHit hit;
         if (Physics.Raycast(general.camera.transform.position,
             representation.transform.position - general.camera.transform.position, out hit, 
