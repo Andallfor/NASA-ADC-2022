@@ -26,6 +26,7 @@ public class playerControls : MonoBehaviour {
 
 internal class bodyRotationalControls {
     private Vector3 planetFocusMousePosition, planetFocusMousePosition1, rotation;
+    private float change;
     public void update() {
         if (Input.GetMouseButtonDown(0)) planetFocusMousePosition = Input.mousePosition;
         else if (Input.GetMouseButton(0)) {
@@ -52,7 +53,15 @@ internal class bodyRotationalControls {
         }
 
         if (Input.mouseScrollDelta.y != 0) {
-            float change = (float) (0.1 * (master.scale - 370)) * Mathf.Sign(Input.mouseScrollDelta.y);
+            if (master.currentState == programStates.interplanetary)
+            {
+                change = (float)(0.1 * (master.scale - 370)) * Mathf.Sign(Input.mouseScrollDelta.y);
+            }
+            else
+            {
+                change = (float)(0.001 * (master.scale - 370)) * Mathf.Sign(Input.mouseScrollDelta.y);
+            }
+            
             master.scale -= change;
         }
         

@@ -16,7 +16,7 @@ public class controller : MonoBehaviour {
         //terrain.processRegion("amudsen rim", 20, 1, 1, gradient);
         //terrain.processRegion("connecting ridge", 20, 1, 1, gradient);
         //terrain.processRegion("connecting ridge extension", 20, 1, 1, gradient);
-        terrain.processRegion("de gerlache kocher massif", 20, 1, 1, gradient);
+        //terrain.processRegion("de gerlache kocher massif", 20, 1, 1, gradient);
 
         //return;
 

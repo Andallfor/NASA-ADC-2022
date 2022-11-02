@@ -47,24 +47,7 @@ public class regionalMeshGenerator {
         lons = csvParse(files.First(x => x.ToLower().Contains("longitude")));
         heights = csvParse(files.First(x => x.ToLower().Contains("height")));
         slopes = csvParse(files.First(x => x.ToLower().Contains("slope")));
-        counts = lats.Count;
-        
-        for (int i=0;i<counts;i++)
-        {
-            slopes[i] = Math.Abs(slopes[i]);
-        }
-        generateHeightMap(gradient);
-        generateTextureMap(slopes, "slopes",flipped:false);
-        
-        List<double> azimuths = new List<double>();
-        List<double> elevations = new List<double>();
-        for (int i = 0; i < lons.Count; i++)
-        {
-            azimuths.Add(azimuthAngle(new geographic(lats[i] * Mathf.Deg2Rad, lons[i] * Mathf.Deg2Rad), new geographic(lat: 0.0, lon: 0.0), new position(361000, 0, -42100)));
-            elevations.Add(elevationAngle(new geographic(lats[i] * Mathf.Deg2Rad, lons[i] * Mathf.Deg2Rad), heights[i], 1737.4, new geographic(0, 0), 0, 6371));
-        }
-        generateTextureMap(elevations, "elevationAngles", false);
-        generateTextureMap(azimuths, "azimuth", false);
+        generateMaps();
         /*
         
                      idealWidth                reminderWidth
@@ -129,7 +112,25 @@ public class regionalMeshGenerator {
 
         return meshes;
     }
+    /// <summary>
+    /// Generates all texture maps for region
+    /// </summary>
+    private void generateMaps()
+    {
+        counts = lats.Count;//jusr assign it as a variable to increase efficiency marginally
+        generateHeightMap(gradient);
+        generateTextureMap(slopes, "slopes", flipped: false);
 
+        List<double> azimuths = new List<double>();
+        List<double> elevations = new List<double>();
+        for (int i = 0; i < counts; i++)
+        {
+            azimuths.Add(azimuthAngle(new geographic(lats[i] * Mathf.Deg2Rad, lons[i] * Mathf.Deg2Rad), new geographic(lat: 0.0, lon: 0.0), new position(361000, 0, -42100)));
+            elevations.Add(elevationAngle(new geographic(lats[i] * Mathf.Deg2Rad, lons[i] * Mathf.Deg2Rad), heights[i], 1737.4, new geographic(0, 0), 0, 6371));
+        }
+        generateTextureMap(elevations, "elevationAngles", false);
+        generateTextureMap(azimuths, "azimuth", false);
+    }
     /// <summary>
     /// generateHeightMap
     /// </summary>
@@ -145,6 +146,12 @@ public class regionalMeshGenerator {
         }
         generateTextureMap(vertice, "height",flipped:false);
     }
+    /// <summary>
+    /// Generates Texture Map based on data and a gradient
+    /// </summary>
+    /// <param name="data">Data that will be displayed</param>
+    /// <param name="type">Type of map e.x. Azimuth Height etc.</param>
+    /// <param name="flipped">Whether or not to flip the gradient</param>
     private void generateTextureMap(List<double> data,string type,bool flipped)
     {
 
@@ -192,6 +199,13 @@ public class regionalMeshGenerator {
     {
         return (new Vector2Int(ind%size,Mathf.FloorToInt(ind/size)));
     }
+    /// <summary>
+    /// Generates Azimuth Angles
+    /// </summary>
+    /// <param name="moonDegrees">latitude and longitude of position on moon</param>
+    /// <param name="onEarth">latitude and longitude of position on earth</param>
+    /// <param name="earthPosition">position of earth in km assuming moon is [0,0,0]</param>
+    /// <returns>double that is azimuth angle</returns>
     public static double azimuthAngle(geographic moonDegrees, geographic onEarth, position earthPosition)
     {
         geographic earthDegrees = new geographic(Math.Atan2(-42100_000, 361000_000), 0);
@@ -199,6 +213,16 @@ public class regionalMeshGenerator {
         geographic moon = new geographic(moonDegrees.lat * Mathf.Deg2Rad, moonDegrees.lon * Mathf.Deg2Rad);
         return Mathf.Rad2Deg * Math.Atan2((Math.Sin(earth.lon - moon.lon) * Math.Cos(earth.lat)), ((Math.Cos(moon.lat) * Math.Sin(earth.lat)) - (Math.Sin(moon.lat) * Math.Cos(earth.lat) * Math.Cos(earth.lon - moon.lat))));
     }
+    /// <summary>
+    /// elevation angles
+    /// </summary>
+    /// <param name="moon">position of point on moon in latitudes and longitudes</param>
+    /// <param name="moonTerrainHeight">height of terrain at position</param>
+    /// <param name="moonRadius">radius of the moon</param>
+    /// <param name="earth">position on earth in latitudes and longitudes</param>
+    /// <param name="earthTerrainHeight">height of terrain on earth</param>
+    /// <param name="earthRadius">radius of earth</param>
+    /// <returns>double of elevation angle</returns>
     public static double elevationAngle(geographic moon, double moonTerrainHeight, double moonRadius, geographic earth, double earthTerrainHeight, double earthRadius)
     {
         position mpos = new position((moonRadius + moonTerrainHeight) * Math.Cos(moon.lat) * Math.Cos(moon.lon), (moonRadius + moonTerrainHeight) * Math.Cos(moon.lat) * Math.Sin(moon.lon), (moonRadius + moonTerrainHeight) * Math.Sin(moon.lat));

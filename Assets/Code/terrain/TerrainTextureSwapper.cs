@@ -5,8 +5,9 @@ using UnityEngine.UI;
 using TMPro;
 public class TerrainTextureSwapper : MonoBehaviour
 {
-    private GameObject label;
+    private GameObject regionalView,labels,earth;
     private TMP_Text text;
+    
     // Start is called before the first frame update
     public void handleTexture(int input)
     {
@@ -15,7 +16,9 @@ public class TerrainTextureSwapper : MonoBehaviour
     private void Awake()
     {
         text= GameObject.Find("Region").GetComponent<TMP_Text>();
-        label=GameObject.Find("RegionalView");
+        regionalView=GameObject.Find("RegionalView");
+        labels = GameObject.Find("labels");
+        earth = GameObject.Find("earth");
     }
     private void Update()
     {
@@ -25,12 +28,17 @@ public class TerrainTextureSwapper : MonoBehaviour
         }
         if (master.currentState == programStates.planetaryTerrain)
         {
-            label.active = true;
+            regionalView.active = true;
+            labels.active = false;
+            earth.active = false;
+            
             
         }
         else
         {
-            label.active = false;
+            regionalView.active = false;
+            labels.active = true;
+            earth.active = true;
         }
     }
 }
