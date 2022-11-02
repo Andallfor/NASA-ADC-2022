@@ -5,7 +5,7 @@ using System;
 
 public class controller : MonoBehaviour {
     planet sun, earth, moon;
-    crater haworth, shackletonPeak,regional;
+    crater haworth, shackletonPeak,regional,amudsenRim,connectingRidge,connectingRidgeExtension,deGerlacheKocherMassif;
     public bool usingTerrain = false;
     public Gradient gradient;
     
@@ -13,9 +13,13 @@ public class controller : MonoBehaviour {
         //terrain.processRegion("haworth", 20, 1,1,gradient);
         //terrain.processRegion("regional", 20, 1, 1, gradient);
         //terrain.processRegion("peak near shackleton", 6, 1,1,gradient);
+        //terrain.processRegion("amudsen rim", 20, 1, 1, gradient);
+        //terrain.processRegion("connecting ridge", 20, 1, 1, gradient);
+        //terrain.processRegion("connecting ridge extension", 20, 1, 1, gradient);
+        terrain.processRegion("de gerlache kocher massif", 20, 1, 1, gradient);
 
         //return;
-        
+
 
         master.onStateChange += terrain.onStateChange;
 
@@ -30,8 +34,11 @@ public class controller : MonoBehaviour {
             new bodyRepresentationInfo(general.moonMat));
         haworth = new crater("Haworth", new geographic(-86.7515237574502, -22.7749958363969), moon, new terrainFilesInfo("haworth", new List<Vector2Int>() {new Vector2Int(20, 1)}));
         regional = new crater("regional", new geographic(-90, 0), moon, new terrainFilesInfo("regional", new List<Vector2Int>() { new Vector2Int(20, 1) }));
+        amudsenRim = new crater("amudsen rim", new geographic(-84.227, 69.444), moon, new terrainFilesInfo("amudsen rim", new List<Vector2Int>() { new Vector2Int(20, 1) }));
         shackletonPeak = new crater("Peak Near Shackleton", new geographic(-88.8012678662351, 123.683478996976), moon, new terrainFilesInfo("peak near shackleton", new List<Vector2Int>() {new Vector2Int(6, 1)}));
-
+        connectingRidge = new crater("Connecting Ridge", new geographic(-89.4418, -137.5314), moon, new terrainFilesInfo("connecting ridge", new List<Vector2Int>() { new Vector2Int(20, 1) }));
+        connectingRidgeExtension = new crater("Connecting Ridge Extension", new geographic(-89.0134, -101.9614), moon, new terrainFilesInfo("connecting ridge extension", new List<Vector2Int>() { new Vector2Int(20, 1) }));
+        deGerlacheKocherMassif = new crater("De Gerlache Kocher Massif", new geographic(-85.8252227835536, -116.321872646458), moon, new terrainFilesInfo("de gerlache kocher massif", new List<Vector2Int>() { new Vector2Int(20, 1) }));
         body.addFamilyNode(sun, earth);
         body.addFamilyNode(earth, moon);
 
@@ -47,7 +54,11 @@ public class controller : MonoBehaviour {
             moon.updatePosition();
             haworth.update();
             regional.update();
+            amudsenRim.update();
             shackletonPeak.update();
+            connectingRidge.update();
+            connectingRidgeExtension.update();
+            deGerlacheKocherMassif.update();
             
             master.notifyUpdateEnd();
         }, null));

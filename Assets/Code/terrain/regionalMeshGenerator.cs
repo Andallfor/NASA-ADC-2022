@@ -48,6 +48,7 @@ public class regionalMeshGenerator {
         heights = csvParse(files.First(x => x.ToLower().Contains("height")));
         slopes = csvParse(files.First(x => x.ToLower().Contains("slope")));
         counts = lats.Count;
+        
         for (int i=0;i<counts;i++)
         {
             slopes[i] = Math.Abs(slopes[i]);
@@ -59,7 +60,7 @@ public class regionalMeshGenerator {
         List<double> elevations = new List<double>();
         for (int i = 0; i < lons.Count; i++)
         {
-            azimuths.Add(azimuthAngle(new geographic(lats[i] * Mathf.Deg2Rad, lons[i] * Mathf.Deg2Rad), new geographic(lat: 0.0, lon: 0.0)));
+            azimuths.Add(azimuthAngle(new geographic(lats[i] * Mathf.Deg2Rad, lons[i] * Mathf.Deg2Rad), new geographic(lat: 0.0, lon: 0.0), new position(361000, 0, -42100)));
             elevations.Add(elevationAngle(new geographic(lats[i] * Mathf.Deg2Rad, lons[i] * Mathf.Deg2Rad), heights[i], 1737.4, new geographic(0, 0), 0, 6371));
         }
         generateTextureMap(elevations, "elevationAngles", false);
@@ -86,6 +87,9 @@ public class regionalMeshGenerator {
 
         double latAvg = lats.Average();
         double lonAvg = lons.Average();
+        Debug.Log(name);
+        Debug.Log(latAvg);
+        Debug.Log(lonAvg);
         position offset = geographic.toCartesian(latAvg, lonAvg, radius + heights.Average() / 1000.0);
         Debug.Log($"{name}: {latAvg}, {lonAvg}");
 
@@ -145,11 +149,13 @@ public class regionalMeshGenerator {
     {
 
         double minY = data.Min();
-        Debug.Log(type);
+        Debug.Log("MIN");
         Debug.Log(minY);
+        Debug.Log("MAX");
+        
         
         double maxY= data.Max();
-        
+        Debug.Log(maxY);
         Color[] colors = new Color[counts];
 
 
@@ -186,9 +192,12 @@ public class regionalMeshGenerator {
     {
         return (new Vector2Int(ind%size,Mathf.FloorToInt(ind/size)));
     }
-    public static double azimuthAngle(geographic moon, geographic earth)
+    public static double azimuthAngle(geographic moonDegrees, geographic onEarth, position earthPosition)
     {
-        return Mathf.Rad2Deg*Math.Atan2((Math.Sin(earth.lon - moon.lon) * Math.Cos(earth.lat)), ((Math.Cos(moon.lat) * Math.Sin(earth.lat)) - (Math.Sin(moon.lat) * Math.Cos(earth.lat) * Math.Cos(earth.lon - moon.lat))));
+        geographic earthDegrees = new geographic(Math.Atan2(-42100_000, 361000_000), 0);
+        geographic earth = new geographic(earthDegrees.lat * Mathf.Deg2Rad, earthDegrees.lon * Mathf.Deg2Rad);
+        geographic moon = new geographic(moonDegrees.lat * Mathf.Deg2Rad, moonDegrees.lon * Mathf.Deg2Rad);
+        return Mathf.Rad2Deg * Math.Atan2((Math.Sin(earth.lon - moon.lon) * Math.Cos(earth.lat)), ((Math.Cos(moon.lat) * Math.Sin(earth.lat)) - (Math.Sin(moon.lat) * Math.Cos(earth.lat) * Math.Cos(earth.lon - moon.lat))));
     }
     public static double elevationAngle(geographic moon, double moonTerrainHeight, double moonRadius, geographic earth, double earthTerrainHeight, double earthRadius)
     {
