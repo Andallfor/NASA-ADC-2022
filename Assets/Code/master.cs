@@ -48,7 +48,10 @@ public static class master {
     /// <summary> Get the current system time. Modifying the return value will not affect the actual system. Use <see cref="incrementTime(double)"/> to change the time. </summary>
     public static time getCurrentTime() => sysTime;
     /// <summary> Change the current system time by a julian value. </summary>
-    public static void incrementTime(double add) {sysTime.addJulianTime(add);}
+    public static void incrementTime(double add) {
+        sysTime.addJulianTime(add);
+        Debug.Log(master.sysTime);
+    }
     /// <summary> Mark the program as initialized. </summary>
     public static void markInit() {
         if (ReferenceEquals(master.sun, null)) throw new ArgumentException("Could not find a sun in the program.");

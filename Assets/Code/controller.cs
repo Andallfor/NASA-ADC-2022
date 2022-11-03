@@ -5,19 +5,20 @@ using System;
 
 public class controller : MonoBehaviour {
     planet sun, earth, moon;
-    crater haworth, shackletonPeak,regional,amudsenRim,connectingRidge,connectingRidgeExtension,deGerlacheKocherMassif;
+    crater haworth, shackletonPeak,regional,amudsenRim,connectingRidge,connectingRidgeExtension,deGerlacheKocherMassif,deGerlacheRim1,deGerlacheRim2;
     public bool usingTerrain = false;
     public Gradient gradient;
     
     void Awake() {
         //terrain.processRegion("haworth", 20, 1,1,gradient);
-        terrain.processRegion("regional", 20, 1, 1, gradient);
+        //terrain.processRegion("regional", 20, 1, 1, gradient);
         //terrain.processRegion("peak near shackleton", 6, 1,1,gradient);
         //terrain.processRegion("amudsen rim", 20, 1, 1, gradient);
         //terrain.processRegion("connecting ridge", 20, 1, 1, gradient);
         //terrain.processRegion("connecting ridge extension", 20, 1, 1, gradient);
         //terrain.processRegion("de gerlache kocher massif", 20, 1, 1, gradient);
-
+        //terrain.processRegion("de gerlache rim 1", 20, 1, 1, gradient);
+        //terrain.processRegion("de gerlache rim 2", 20, 1, 1, gradient);
         //return;
 
 
@@ -39,6 +40,8 @@ public class controller : MonoBehaviour {
         connectingRidge = new crater("Connecting Ridge", new geographic(-89.4418, -137.5314), moon, new terrainFilesInfo("connecting ridge", new List<Vector2Int>() { new Vector2Int(20, 1) }));
         connectingRidgeExtension = new crater("Connecting Ridge Extension", new geographic(-89.0134, -101.9614), moon, new terrainFilesInfo("connecting ridge extension", new List<Vector2Int>() { new Vector2Int(20, 1) }));
         deGerlacheKocherMassif = new crater("De Gerlache Kocher Massif", new geographic(-85.8252227835536, -116.321872646458), moon, new terrainFilesInfo("de gerlache kocher massif", new List<Vector2Int>() { new Vector2Int(20, 1) }));
+        deGerlacheRim1 = new crater("De Gerlache Rim 1", new geographic(-88.6745888041235, -67.9382548686084), moon, new terrainFilesInfo("de gerlache rim 1", new List<Vector2Int>() { new Vector2Int(20, 1) }));
+        deGerlacheRim2 = new crater("De Gerlache Rim 2", new geographic(-88.2197331954664, -64.6329487169338), moon, new terrainFilesInfo("de gerlache rim 2", new List<Vector2Int>() { new Vector2Int(20, 1) }));
         body.addFamilyNode(sun, earth);
         body.addFamilyNode(earth, moon);
 
@@ -48,9 +51,10 @@ public class controller : MonoBehaviour {
         
 
         Coroutine mainClock = StartCoroutine(internalClock(3600, int.MaxValue, (tick) => {
-            master.incrementTime(0.0001);
-
+            master.incrementTime(.001);//0.0001
+            
             earth.updatePosition();
+            sun.updatePosition();
             moon.updatePosition();
             haworth.update();
             regional.update();
@@ -59,6 +63,8 @@ public class controller : MonoBehaviour {
             connectingRidge.update();
             connectingRidgeExtension.update();
             deGerlacheKocherMassif.update();
+            deGerlacheRim1.update();
+            deGerlacheRim2.update();
             
             master.notifyUpdateEnd();
         }, null));

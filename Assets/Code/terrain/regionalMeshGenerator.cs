@@ -144,7 +144,7 @@ public class regionalMeshGenerator {
             vertice.Add(geographic.toCartesian(lats[i], lons[i], heights[i] + radius).z);
             
         }
-        generateTextureMap(vertice, "height",flipped:false);
+        generateTextureMap(vertice, "height",flipped:true);
     }
     /// <summary>
     /// Generates Texture Map based on data and a gradient
@@ -162,6 +162,7 @@ public class regionalMeshGenerator {
         
         
         double maxY= data.Max();
+
         Debug.Log(maxY);
         Color[] colors = new Color[counts];
 
@@ -174,6 +175,10 @@ public class regionalMeshGenerator {
         {
 
             float height = Mathf.InverseLerp((float)minY, (float)maxY, (float)data[i]);
+            if (flipped == true)
+            {
+                height = -1 * (height - (float).5)+.5f;
+            }
             Vector2Int pos = OneDIndexToTwoD(i, trueXSize);
             int tempx = pos.x;
             pos.x = pos.y;

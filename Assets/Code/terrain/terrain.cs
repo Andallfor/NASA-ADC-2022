@@ -173,7 +173,7 @@ public static class terrain {
             master.onUpdateEnd += update;
 
             master.playerPosition = currentCrater.parent.rotateLocalGeo(currentCrater.geo, 10).swapAxis();
-            general.bodyParent.transform.localEulerAngles = currentCrater.geo.rotateToUp();
+            //general.bodyParent.transform.localEulerAngles = currentCrater.geo.rotateToUp();
 
             general.camera.transform.localPosition = new Vector3(0, 0, -5);
             general.camera.transform.localEulerAngles = Vector3.zero;
