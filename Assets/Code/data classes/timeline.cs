@@ -34,6 +34,7 @@ public class timeline {
     #region INSTANCE METHODS
     /// <summary> Find the position of a body at a time. Due to using keplerian elements, will give their localPos. </summary>
     public position find(time t) {
+        
         if (!active) return new position(0, 0, 0);
 
         // https://drive.google.com/file/d/1so93guuhCO94PEU8vFvDLv_-k9vJBcFs/view

@@ -25,7 +25,7 @@ public static class master {
     }}
     private static double _scale = 1000;
     /// <summary> The current program's time. Use <see cref="getCurrentTime()"/> and <see cref="incrementTime(double)"/> </summary>
-    private static time sysTime = new time(2460806.5);
+    private static time sysTime = new time(2459887);
     /// <summary> The position of the player in km. </summary>
     public static position playerPosition;
     /// <summary> Whether or not the program has started. </summary>
@@ -50,7 +50,7 @@ public static class master {
     /// <summary> Change the current system time by a julian value. </summary>
     public static void incrementTime(double add) {
         sysTime.addJulianTime(add);
-        Debug.Log(master.sysTime);
+        //Debug.Log(master.sysTime);
     }
     /// <summary> Mark the program as initialized. </summary>
     public static void markInit() {
