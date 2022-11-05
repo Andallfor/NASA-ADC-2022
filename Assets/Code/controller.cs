@@ -53,28 +53,16 @@ public class controller : MonoBehaviour {
         body.addFamilyNode(sun, earth);
         body.addFamilyNode(earth, moon);
 
-        master.referenceFrame = moon;
+        master.referenceFrameBody = moon;
 
         master.markInit();
         
 
         Coroutine mainClock = StartCoroutine(internalClock(3600, int.MaxValue, (tick) => {
-            master.incrementTime(.0001);//0.0001
+            master.incrementTime(0.0001);//0.0001
+
+            master.propagateUpdate();
             
-            earth.updatePosition();
-            sun.updatePosition();
-            moon.updatePosition();
-            haworth.update();
-            regional.update();
-            amudsenRim.update();
-            shackletonPeak.update();
-            connectingRidge.update();
-            connectingRidgeExtension.update();
-            deGerlacheKocherMassif.update();
-            deGerlacheRim1.update();
-            deGerlacheRim2.update();
-            faustiniRimA.update();
-            leibnitzBetaPlateau.update();
             master.notifyUpdateEnd();
         }, null));
     }
