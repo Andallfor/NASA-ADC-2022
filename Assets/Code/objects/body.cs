@@ -53,23 +53,6 @@ public abstract class body {
 
     /// <summary> Get the local position of body at time t. </summary>
     public position requestLocalPosition(time t) => information.positions.find(t);
-
-    /// <summary> Get the world position of body at time t. </summary>
-    public position requestWorldPosition(time t) {
-        position p = information.positions.find(t);
-
-        // ascend parent tree until we reach end
-        body b = this;
-        while (true) {
-            if (ReferenceEquals(b.parent, null)) break;
-            if (b.parent.information.bodyID == bodyType.sun) break;
-
-            p += b.parent.requestLocalPosition(t);
-            b = b.parent.parent;
-        }
-
-        return p;
-    }
     #endregion
 
     #region STATIC METHODS

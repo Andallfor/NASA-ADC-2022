@@ -31,7 +31,7 @@ public class controller : MonoBehaviour {
             new bodyInfo("earth", 6371, new timeline(1.494757194768592E+08, 1.684950075464667E-02, 4.160341414638201E-03, 2.840153557215478E+02, 1.818203397569767E+02, 2.704822621765425E+02, time.strDateToJulian("2022 Oct 8 00:00:00.0000"), 3.986004418e14), bodyType.planet),
             new bodyRepresentationInfo(general.earthMat));
         moon = new planet(
-            new bodyInfo("moon", 1737.4, new timeline(0.3844e5, 0.0549, 5.145, 308.92, 0, 0, 0, 4902.800066), bodyType.moon),
+            new bodyInfo("moon", 1737.4, new timeline(3.864958215095060E+05, 4.538937397897071E-02, 2.745404561156122E+01, 3.005845860250088E+02, 7.757615787462679, 5.234116546697739E+01, 2459861.5, 3.9860E+7), bodyType.moon),
             new bodyRepresentationInfo(general.moonMat));
         haworth = new crater("Haworth", new geographic(-86.7515237574502, -22.7749958363969), moon, new terrainFilesInfo("haworth", new List<Vector2Int>() {new Vector2Int(20, 1)}));
         regional = new crater("regional", new geographic(-90, 0), moon, new terrainFilesInfo("regional", new List<Vector2Int>() { new Vector2Int(20, 1) }));
@@ -45,26 +45,15 @@ public class controller : MonoBehaviour {
         body.addFamilyNode(sun, earth);
         body.addFamilyNode(earth, moon);
 
-        master.referenceFrame = moon;
+        master.referenceFrameBody = moon;
 
         master.markInit();
         
 
         Coroutine mainClock = StartCoroutine(internalClock(3600, int.MaxValue, (tick) => {
-            master.incrementTime(.001);//0.0001
-            
-            earth.updatePosition();
-            sun.updatePosition();
-            moon.updatePosition();
-            haworth.update();
-            regional.update();
-            amudsenRim.update();
-            shackletonPeak.update();
-            connectingRidge.update();
-            connectingRidgeExtension.update();
-            deGerlacheKocherMassif.update();
-            deGerlacheRim1.update();
-            deGerlacheRim2.update();
+            master.incrementTime(0.0001);//0.0001
+
+            master.propagateUpdate();
             
             master.notifyUpdateEnd();
         }, null));

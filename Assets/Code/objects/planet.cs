@@ -26,16 +26,16 @@ public class planet : body {
         localPos = requestLocalPosition(master.getCurrentTime());
         worldPos = this.localPos + ((information.bodyID == bodyType.sun) ? new position(0, 0, 0) : parent.worldPos);
 
-        position p = (worldPos - master.playerPosition - master.referenceFrame.worldPos) / master.scale;
+        position p = (worldPos - master.playerPosition - master.referenceFrame) / master.scale;
 
         representation.transform.localPosition = (Vector3) p.swapAxis();
     }
 
     public override void updateScale() {
         representation.transform.localScale = new Vector3(
-            Mathf.Max((float) ((information.radius * 2.0) / master.scale), 1),
-            Mathf.Max((float) ((information.radius * 2.0) / master.scale), 1),
-            Mathf.Max((float) ((information.radius * 2.0) / master.scale), 1));
+            (float) ((information.radius * 2.0) / master.scale),
+            (float) ((information.radius * 2.0) / master.scale),
+            (float) ((information.radius * 2.0) / master.scale));
     }
     #endregion
 }
