@@ -45,16 +45,17 @@ public class lighting : MonoBehaviour
         if (master.currentState == programStates.planetaryTerrain) {
             //*Leo sighs and removes Liam's push priviledges*
             // yes
-            centralLight.transform.position = sun.transform.position.normalized * 1000* 1/(int)master.scale*1000;
-            lightComp.range = Vector3.Distance(sun.transform.position.normalized * 1000*1/(int)master.scale*1000, Vector3.zero) + 5000;
+            centralLight.transform.position = sun.transform.position.normalized * 10000* 1/(int)master.scale*1000;
+            lightComp.range = Vector3.Distance(sun.transform.position.normalized * 10000*1/(int)master.scale*1000, Vector3.zero) + 5000;
 
-            haloLight.transform.position = sun.transform.position.normalized * 1000* 1/(int)master.scale*1000;
+            haloLight.transform.position = sun.transform.position.normalized * 10000* 1/(int)master.scale*1000;
         }
         if (master.currentState == programStates.interplanetary)
         {
-            centralLight.transform.position = sun.transform.position.normalized * 1000*1000/(int)master.scale;
-            lightComp.range = Vector3.Distance(sun.transform.position.normalized * 1000/ (int)master.scale, Vector3.zero) + 5000;
-            haloLight.transform.position = sun.transform.position.normalized * 1000/ (int)master.scale;
+            centralLight.transform.position = sun.transform.position.normalized * 10000*1000/(int)master.scale;
+            lightComp.range =Vector3.Distance(sun.transform.position.normalized * 1000*10000/(int)master.scale,Vector3.zero) + 5000;
+            
+            haloLight.transform.position = sun.transform.position.normalized * 1000*10000/ (int)master.scale;
         }
 
             

@@ -25,7 +25,7 @@ public static class master {
     }}
     private static double _scale = 1000;
     /// <summary> The current program's time. Use <see cref="getCurrentTime()"/> and <see cref="incrementTime(double)"/> </summary>
-    private static time sysTime = new time(2460806.5);
+    private static time sysTime = new time(2459887);
     /// <summary> The position of the player in km. </summary>
     public static position playerPosition;
     public static position referenceFrame {get; private set;}
