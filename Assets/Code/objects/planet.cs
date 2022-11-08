@@ -22,8 +22,7 @@ public class planet : body {
     #endregion
 
     #region OVERRIDES/OPERATORS
-        public override void updatePosition() {
-        
+    public override void updatePosition() {
         localPos = requestLocalPosition(master.getCurrentTime());
         worldPos = this.localPos + ((information.bodyID == bodyType.sun) ? new position(0, 0, 0) : parent.worldPos);
 

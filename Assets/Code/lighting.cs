@@ -8,6 +8,8 @@ public class lighting : MonoBehaviour
     GameObject centralLight, haloLight, directionalLight;
     Light lightComp;
 
+    public GameObject terrainLight;
+
     public float K = .00001f;
     public void handleLighting(int inp) {
         if (centralLight.activeSelf) {
@@ -41,6 +43,11 @@ public class lighting : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        
+        if (master.currentState == programStates.planetaryTerrain) {
+            terrainLight.SetActive(true);
+            return;
+        } else terrainLight.SetActive(false);
         lightComp.intensity = K * Vector3.Distance(sun.transform.position, Vector3.zero);
         if (master.currentState == programStates.planetaryTerrain) {
             //*Leo sighs and removes Liam's push priviledges*

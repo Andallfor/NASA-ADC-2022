@@ -36,6 +36,10 @@ internal class bodyRotationalControls {
             Vector2 adjustedDifference = new Vector2(-difference.y / Screen.height, difference.x / Screen.width);
             adjustedDifference *= 100f;
 
+            if (master.currentState == programStates.interplanetary) adjustedDifference = new Vector2(
+                (float) (adjustedDifference.x / (1500.0 / master.scale)),
+                (float) (adjustedDifference.y / (1500.0 / master.scale)));
+
             rotation.x = adjustedDifference.x;
             rotation.y = adjustedDifference.y;
             rotation.z = 0;
@@ -59,7 +63,7 @@ internal class bodyRotationalControls {
             }
             else
             {
-                change = (float)(0.001 * (master.scale - 370)) * Mathf.Sign(Input.mouseScrollDelta.y);
+                change = -(float)(0.001 * (master.scale - 370)) * Mathf.Sign(Input.mouseScrollDelta.y);
             }
             
             master.scale -= change;

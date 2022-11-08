@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.IO;
+using System.Text;
 
 public class controller : MonoBehaviour {
     planet sun, earth, moon;
@@ -24,42 +26,47 @@ public class controller : MonoBehaviour {
         //terrain.processRegion("leibnitz beta plateau", 20, 1, 1, gradient);
         //return;
 
+        //globalMeshGenerator.initialize();
+        //List<Vector2Int> areas = new List<Vector2Int>() {new Vector2Int(15, 30), new Vector2Int(30, 30), /*new Vector2Int(15, 60), new Vector2Int(30, 60)*/};
+        //foreach (Vector2Int a in areas) {
+        //    globalMeshGenerator.generateTile(3, a, new Vector3Int(0, 0, 32));
+        //    globalMeshGenerator.generateTile(3, a, new Vector3Int(0, 250 * 32 - 1, 32));
+        //    globalMeshGenerator.generateTile(3, a, new Vector3Int(250 * 32 - 1, 0, 32));
+        //    globalMeshGenerator.generateTile(3, a, new Vector3Int(250 * 32 - 1, 250 * 32 - 1, 32));
+        //}
+
 
         master.onStateChange += terrain.onStateChange;
 
-        sun = new planet(
+        planet sun = new planet(
             new bodyInfo("sun", 696340, new timeline(), bodyType.sun),
             new bodyRepresentationInfo(general.defaultMat, false));
-        earth = new planet(
+        planet earth = new planet(
             new bodyInfo("earth", 6371, new timeline(1.494757194768592E+08, 1.684950075464667E-02, 4.160341414638201E-03, 2.840153557215478E+02, 1.818203397569767E+02, 2.704822621765425E+02, time.strDateToJulian("2022 Oct 8 00:00:00.0000"), 3.986004418e14), bodyType.planet),
             new bodyRepresentationInfo(general.earthMat));
-        moon = new planet(
+        planet moon = new planet(
             new bodyInfo("moon", 1737.4, new timeline(3.864958215095060E+05, 4.538937397897071E-02, 2.745404561156122E+01, 3.005845860250088E+02, 7.757615787462679, 5.234116546697739E+01, 2459861.5, 3.9860E+7), bodyType.moon),
             new bodyRepresentationInfo(general.moonMat));
-        haworth = new crater("Haworth", new geographic(-86.7515237574502, -22.7749958363969), moon, new terrainFilesInfo("haworth", new List<Vector2Int>() { new Vector2Int(6, 4) }));
-        shackletonPeak = new crater("Peak Near Shackleton", new geographic(-88.8012678662351, 123.683478996976), moon, new terrainFilesInfo("peak near shackleton", new List<Vector2Int>() { new Vector2Int(6, 4) }));
-        
-        haworth = new crater("Haworth", new geographic(-86.7515237574502, -22.7749958363969), moon, new terrainFilesInfo("haworth", new List<Vector2Int>() {new Vector2Int(20, 1)}));
-        regional = new crater("regional", new geographic(-90, 0), moon, new terrainFilesInfo("regional", new List<Vector2Int>() { new Vector2Int(20, 1) }));
-        amudsenRim = new crater("amudsen rim", new geographic(-84.227, 69.444), moon, new terrainFilesInfo("amudsen rim", new List<Vector2Int>() { new Vector2Int(20, 1) }));
-        shackletonPeak = new crater("Peak Near Shackleton", new geographic(-88.8012678662351, 123.683478996976), moon, new terrainFilesInfo("peak near shackleton", new List<Vector2Int>() {new Vector2Int(6, 1)}));
-        connectingRidge = new crater("Connecting Ridge", new geographic(-89.4418, -137.5314), moon, new terrainFilesInfo("connecting ridge", new List<Vector2Int>() { new Vector2Int(20, 1) }));
-        connectingRidgeExtension = new crater("Connecting Ridge Extension", new geographic(-89.0134, -101.9614), moon, new terrainFilesInfo("connecting ridge extension", new List<Vector2Int>() { new Vector2Int(20, 1) }));
-        deGerlacheKocherMassif = new crater("De Gerlache Kocher Massif", new geographic(-85.8252227835536, -116.321872646458), moon, new terrainFilesInfo("de gerlache kocher massif", new List<Vector2Int>() { new Vector2Int(20, 1) }));
-        deGerlacheRim1 = new crater("De Gerlache Rim 1", new geographic(-88.6745888041235, -67.9382548686084), moon, new terrainFilesInfo("de gerlache rim 1", new List<Vector2Int>() { new Vector2Int(20, 1) }));
-        deGerlacheRim2 = new crater("De Gerlache Rim 2", new geographic(-88.2197331954664, -64.6329487169338), moon, new terrainFilesInfo("de gerlache rim 2", new List<Vector2Int>() { new Vector2Int(20, 1) }));
-        faustiniRimA = new crater("Faustini Rim A", new geographic(-87.8810364565, 90.0000000000112), moon, new terrainFilesInfo("faustini rim a", new List<Vector2Int>() { new Vector2Int(20, 1) }));
-        leibnitzBetaPlateau = new crater("Leibnitz Beta Plateau", new geographic(-85.4240543764601, 31.7427274315016), moon, new terrainFilesInfo("leibnitz beta plateau", new List<Vector2Int>() { new Vector2Int(20, 1) }));
+
+        crater haworth =                  new crater("Haworth",                    new geographic(-86.7515237574502, -22.7749958363969), moon, new terrainFilesInfo("haworth",                    new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        //crater regional =                 new crater("Regional",                   new geographic(-90, 0),                               moon, new terrainFilesInfo("regional",                   new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater amudsenRim =               new crater("Amudsen Rim",                new geographic(-84.227, 69.444),                      moon, new terrainFilesInfo("amudsen rim",                new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater shackletonPeak =           new crater("Peak Near Shackleton",       new geographic(-88.8012678662351, 123.683478996976),  moon, new terrainFilesInfo("peak near shackleton",       new List<Vector2Int>() {new Vector2Int(6,  1)}));
+        crater connectingRidge =          new crater("Connecting Ridge",           new geographic(-89.4418, -137.5314),                  moon, new terrainFilesInfo("connecting ridge",           new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater connectingRidgeExtension = new crater("Connecting Ridge Extension", new geographic(-89.0134, -101.9614),                  moon, new terrainFilesInfo("connecting ridge extension", new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater deGerlacheKocherMassif =   new crater("De Gerlache Kocher Massif",  new geographic(-85.8252227835536, -116.321872646458), moon, new terrainFilesInfo("de gerlache kocher massif",  new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater deGerlacheRim1 =           new crater("De Gerlache Rim 1",          new geographic(-88.6745888041235, -67.9382548686084), moon, new terrainFilesInfo("de gerlache rim 1",          new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater deGerlacheRim2 =           new crater("De Gerlache Rim 2",          new geographic(-88.2197331954664, -64.6329487169338), moon, new terrainFilesInfo("de gerlache rim 2",          new List<Vector2Int>() {new Vector2Int(20, 1)}));
+
         body.addFamilyNode(sun, earth);
         body.addFamilyNode(earth, moon);
 
         master.referenceFrameBody = moon;
 
         master.markInit();
-        
 
         Coroutine mainClock = StartCoroutine(internalClock(3600, int.MaxValue, (tick) => {
-            master.incrementTime(0.0001);//0.0001
+            master.incrementTime(0.0001);
 
             master.propagateUpdate();
             
@@ -94,5 +101,9 @@ public class controller : MonoBehaviour {
         }
 
         termination();
+    }
+
+    private void OnApplicationQuit() {
+        
     }
 }

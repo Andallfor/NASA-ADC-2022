@@ -17,7 +17,7 @@ public class TerrainTextureSwapper : MonoBehaviour
     
     private void Start()
     {
-        date= GameObject.Find("date").GetComponent<TMP_Text>();
+        //date= GameObject.Find("date").GetComponent<TMP_Text>();
         text = GameObject.Find("Region").GetComponent<TMP_Text>();
         regionalView = GameObject.Find("RegionalView");
         labels = GameObject.Find("labels");
@@ -25,7 +25,7 @@ public class TerrainTextureSwapper : MonoBehaviour
     }
     private void Update()
     {
-        date.text = master.getCurrentTime().ToString();
+        //date.text = master.getCurrentTime().ToString();
         
         if (terrain.currentCrater != null)
         {
@@ -34,17 +34,15 @@ public class TerrainTextureSwapper : MonoBehaviour
         }
         if (master.currentState == programStates.planetaryTerrain)
         {
-            regionalView.active = true;
-            labels.active = false;
-            earth.active = false;
-            
-            
+            regionalView.SetActive(true);
+            labels.SetActive(false);
+            earth.SetActive(false);
         }
         else
         {
-            regionalView.active = false;
-            labels.active = true;
-            earth.active = true;
+            regionalView.SetActive(false);
+            labels.SetActive(true);
+            earth.SetActive(true);
         }
     }
 }
