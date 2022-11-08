@@ -14,7 +14,7 @@ public class controller : MonoBehaviour {
     void Awake() {
 
         //terrain.processRegion("haworth", 20, 1,1,gradient);
-        //terrain.processRegion("regional", 20, 1, 1, gradient);
+        terrain.processRegion("regional", 20, 1, 1, gradient);
         //terrain.processRegion("peak near shackleton", 6, 1,1,gradient);
         //terrain.processRegion("amudsen rim", 20, 1, 1, gradient);
         //terrain.processRegion("connecting ridge", 20, 1, 1, gradient);

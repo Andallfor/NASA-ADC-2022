@@ -214,8 +214,8 @@ public class regionalMeshGenerator {
     public static double azimuthAngle(geographic moonDegrees, geographic onEarth, position earthPosition)
     {
         geographic earthDegrees = new geographic(Math.Atan2(-42100_000, 361000_000), 0);
-        geographic earth = new geographic(earthDegrees.lat * Mathf.Deg2Rad, earthDegrees.lon * Mathf.Deg2Rad);
-        geographic moon = new geographic(moonDegrees.lat * Mathf.Deg2Rad, moonDegrees.lon * Mathf.Deg2Rad);
+        geographic earth = new geographic(earthDegrees.lat, earthDegrees.lon);
+        geographic moon = new geographic(moonDegrees.lat, moonDegrees.lon);
         return Mathf.Rad2Deg * Math.Atan2((Math.Sin(earth.lon - moon.lon) * Math.Cos(earth.lat)), ((Math.Cos(moon.lat) * Math.Sin(earth.lat)) - (Math.Sin(moon.lat) * Math.Cos(earth.lat) * Math.Cos(earth.lon - moon.lat))));
     }
     /// <summary>
