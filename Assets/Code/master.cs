@@ -99,6 +99,8 @@ public static class master {
 
             foreach (body b in next.children) queue.Enqueue(b);
         }
+
+        foreach (crater c in master.registeredCraters) c.update();
     }
     #endregion STATIC METHODS
 

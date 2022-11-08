@@ -168,7 +168,7 @@ public static class terrain {
     public static void onStateChange(object s, stateChangeEvent e) {
         if (e.newState == programStates.planetaryTerrain) { // setup
             
-            master.scale = 1;
+            master.scale = 4;
             terrain.generate(currentCrater.terrainData, 0);
             master.onUpdateEnd += update;
 
@@ -176,8 +176,8 @@ public static class terrain {
             //general.bodyParent.transform.localEulerAngles = currentCrater.geo.rotateToUp();
 
             general.camera.transform.localPosition = new Vector3(0, 0, -5);
-            general.camera.transform.localEulerAngles = Vector3.zero;
-            general.camera.transform.RotateAround(Vector3.zero, general.camera.transform.right, 45);
+            general.camera.transform.localEulerAngles = new Vector3(0, 0, 0);
+            general.camera.transform.RotateAround(Vector3.zero, general.camera.transform.right, -150);
             
             currentCrater.parent.representation.SetActive(false);
             currentCrater.label.gameObject.SetActive(false);
