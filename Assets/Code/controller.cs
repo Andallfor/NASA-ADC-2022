@@ -6,24 +6,20 @@ using System.IO;
 using System.Text;
 
 public class controller : MonoBehaviour {
-    planet sun, earth, moon;
-    crater haworth, shackletonPeak,regional,amudsenRim,connectingRidge,connectingRidgeExtension,deGerlacheKocherMassif,deGerlacheRim1,deGerlacheRim2,faustiniRimA,leibnitzBetaPlateau;
-    public bool usingTerrain = false;
-    public Gradient gradient;
-    
     void Awake() {
-
-        //terrain.processRegion("haworth", 20, 1,1,gradient);
-        //terrain.processRegion("regional", 20, 1, 1, gradient);
-        //terrain.processRegion("peak near shackleton", 6, 1,1,gradient);
-        //terrain.processRegion("amudsen rim", 20, 1, 1, gradient);
-        //terrain.processRegion("connecting ridge", 20, 1, 1, gradient);
-        //terrain.processRegion("connecting ridge extension", 20, 1, 1, gradient);
-        //terrain.processRegion("de gerlache kocher massif", 20, 1, 1, gradient);
-        //terrain.processRegion("de gerlache rim 1", 20, 1, 1, gradient);
-        //terrain.processRegion("de gerlache rim 2", 20, 1, 1, gradient);
-        //terrain.processRegion("faustini rim a", 20, 1, 1, gradient);
-        //terrain.processRegion("leibnitz beta plateau", 20, 1, 1, gradient);
+        //terrain.processRegion("haworth", 20, 1);
+        //terrain.processRegion("nobile rim 1", 20, 1);
+        //terrain.processRegion("nobile rim 2", 20, 1);
+        //terrain.processRegion("malapert massif", 20, 1);
+        //terrain.processRegion("peak near shackleton", 20, 1);
+        //terrain.processRegion("amundsen rim", 20, 1);
+        //terrain.processRegion("connecting ridge", 20, 1);
+        //terrain.processRegion("connecting ridge extension", 20, 1);
+        //terrain.processRegion("de gerlache kocher massif", 20, 1);
+        //terrain.processRegion("de gerlache rim 1", 20, 1);
+        //terrain.processRegion("de gerlache rim 2", 20, 1);
+        //terrain.processRegion("faustini rim a", 20, 1);
+        //terrain.processRegion("leibnitz beta plateau", 20, 1);
         //return;
 
         //globalMeshGenerator.initialize();
@@ -49,9 +45,8 @@ public class controller : MonoBehaviour {
             new bodyRepresentationInfo(general.moonMat));
 
         crater haworth =                  new crater("Haworth",                    new geographic(-86.7515237574502, -22.7749958363969), moon, new terrainFilesInfo("haworth",                    new List<Vector2Int>() {new Vector2Int(20, 1)}));
-        //crater regional =                 new crater("Regional",                   new geographic(-90, 0),                               moon, new terrainFilesInfo("regional",                   new List<Vector2Int>() {new Vector2Int(20, 1)}));
-        crater amudsenRim =               new crater("Amudsen Rim",                new geographic(-84.227, 69.444),                      moon, new terrainFilesInfo("amudsen rim",                new List<Vector2Int>() {new Vector2Int(20, 1)}));
-        crater shackletonPeak =           new crater("Peak Near Shackleton",       new geographic(-88.8012678662351, 123.683478996976),  moon, new terrainFilesInfo("peak near shackleton",       new List<Vector2Int>() {new Vector2Int(6,  1)}));
+        crater amudsenRim =               new crater("Amundsen Rim",               new geographic(-84.227, 69.444),                      moon, new terrainFilesInfo("amundsen rim",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater shackletonPeak =           new crater("Peak Near Shackleton",       new geographic(-88.8012678662351, 123.683478996976),  moon, new terrainFilesInfo("peak near shackleton",       new List<Vector2Int>() {new Vector2Int(20, 1)}));
         crater connectingRidge =          new crater("Connecting Ridge",           new geographic(-89.4418, -137.5314),                  moon, new terrainFilesInfo("connecting ridge",           new List<Vector2Int>() {new Vector2Int(20, 1)}));
         crater connectingRidgeExtension = new crater("Connecting Ridge Extension", new geographic(-89.0134, -101.9614),                  moon, new terrainFilesInfo("connecting ridge extension", new List<Vector2Int>() {new Vector2Int(20, 1)}));
         crater deGerlacheKocherMassif =   new crater("De Gerlache Kocher Massif",  new geographic(-85.8252227835536, -116.321872646458), moon, new terrainFilesInfo("de gerlache kocher massif",  new List<Vector2Int>() {new Vector2Int(20, 1)}));
@@ -101,9 +96,5 @@ public class controller : MonoBehaviour {
         }
 
         termination();
-    }
-
-    private void OnApplicationQuit() {
-        
     }
 }

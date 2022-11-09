@@ -8,11 +8,11 @@ using System.Linq;
 /// <summary> Brute force generation of regional files. Used in pre-processing of terrain. </summary>
 public class regionalMeshGenerator {
     #region VARIABLES
-    private int multi, numSubMeshes, trueXSize, trueYSize,res,counts;
+    private int multi, numSubMeshes, trueXSize, trueYSize;
     private double radius;
     private string name, basePath, pathToRegion;
-    private List<double> lats, lons, heights,slopes;
-    private Gradient gradient;
+    private List<double> lats, lons, heights, slopes;
+    private double maxHeight = -1000, minHeight = 1000, maxSlope = -1000, minSlope = 1000, maxAzimuth = -1000, minAzimuth = 1000, maxEle = -1000, minEle = 1000;
     #endregion
 
     /// <summary> Generate a region's mesh. Used only in preprocessing, do not actually show to user. </summary>
@@ -20,13 +20,11 @@ public class regionalMeshGenerator {
     /// <param name="multi">Sample every xth point. </param>
     /// <param name="numSubMeshes">Generate numSubMeshes * numSubMeshes amount of meshes. </param>
     /// <param name="radius">Radius of the planet, in km. </param>
-    public regionalMeshGenerator(string regionName, int multi, int numSubMeshes, double radius,int res,Gradient gradient) {
+    public regionalMeshGenerator(string regionName, int multi, int numSubMeshes, double radius) {
         this.name = regionName;
         this.multi = multi;
         this.numSubMeshes = numSubMeshes;
         this.radius = radius;
-        this.gradient=gradient;
-        this.res = res;
         // Assumes windows
         // gets the user currently running the program (streamingAssetsPath is C:/Users/name/....)
         // we want 'name' as we use it as the identifier in regionalFileLocations.csv to store the path to the regional files
@@ -47,7 +45,6 @@ public class regionalMeshGenerator {
         lons = csvParse(files.First(x => x.ToLower().Contains("longitude")));
         heights = csvParse(files.First(x => x.ToLower().Contains("height")));
         slopes = csvParse(files.First(x => x.ToLower().Contains("slope")));
-        generateMaps();
         /*
         
                      idealWidth                reminderWidth
@@ -70,9 +67,6 @@ public class regionalMeshGenerator {
 
         double latAvg = lats.Average();
         double lonAvg = lons.Average();
-        Debug.Log(name);
-        Debug.Log(latAvg);
-        Debug.Log(lonAvg);
         position offset = geographic.toCartesian(latAvg, lonAvg, radius + heights.Average() / 1000.0);
         Debug.Log($"{name}: {latAvg}, {lonAvg}");
 
@@ -90,6 +84,7 @@ public class regionalMeshGenerator {
                 int yStart = j * idealHeight;
 
                 Vector3[] verts = new Vector3[width * height];
+                Vector2[] uvs = new Vector2[width * height];
                 
                 int k = 0;
                 for (int y = yStart; y < yStart + height; y++) {
@@ -102,6 +97,7 @@ public class regionalMeshGenerator {
                         p.swapAxis(); // unity has y axis upwards, but calculations use z as up
 
                         verts[k] = (Vector3) p;
+                        uvs[k] = new Vector2((float) x / width, (float) y / height);
                         k++;
                     }
                 }
@@ -110,100 +106,72 @@ public class regionalMeshGenerator {
             }
         }
 
+        // retrieve min max data
+        int c = lats.Count; // all lists have the same length
+        for (int i = 0; i < c; i++) {
+            double height = heights[i];
+            double slope = slopes[i];
+            double lat = lats[i];
+            double lon = lons[i];
+
+            // using geographic here to store values, not to actually use as a geographic coord (tech, in theory we use it as a coord)
+            double elevation = elevationAngle(new geographic(lat * Mathf.Deg2Rad, lon * Mathf.Deg2Rad), height, 1737.4, new geographic(0, 0), 0, 6371);
+            double azimuth = azimuthAngle(new geographic(lat * Mathf.Deg2Rad, lon * Mathf.Deg2Rad), new geographic(0, 0), new position(361000, 0, -42100));
+
+            if (height > maxHeight) maxHeight = height;
+            if (height < minHeight) minHeight = height;
+            if (slope > maxSlope) maxSlope = slope;
+            if (slope < minSlope) minSlope = slope;
+            if (elevation > maxEle) maxEle = elevation;
+            if (elevation < minEle) minEle = elevation;
+            if (azimuth > maxAzimuth) maxAzimuth = azimuth;
+            if (azimuth < minAzimuth) minAzimuth = azimuth;
+        }
+
+        Texture2D maps = new Texture2D(trueXSize, trueYSize);
+        Color[] cs = new Color[trueXSize * trueYSize];
+
+        // maybe combine with first loop? seems difficult to reconcile with submesh loop though
+        for (int y = 0; y < trueYSize - 1; y++) {
+            for (int x = 0; x < trueXSize - 1; x++) {
+                // for now have gradients be relative (to the max value)
+                int i = y * trueXSize + x;
+                short height = percentToShort(heights[i], minHeight, maxHeight);
+                short slope = percentToShort(slopes[i], minSlope, maxSlope);
+
+                double lat = lats[i];
+                double lon = lons[i];
+                double azi = azimuthAngle(new geographic(lat * Mathf.Deg2Rad, lon * Mathf.Deg2Rad), new geographic(0, 0), new position(361000, 0, -42100));
+                double ele = elevationAngle(new geographic(lat * Mathf.Deg2Rad, lon * Mathf.Deg2Rad), heights[i], 1737.4, new geographic(0, 0), 0, 6371);
+
+                short azimuth = percentToShort(azi, minAzimuth, maxAzimuth);
+                short elevation = percentToShort(ele, minEle, maxEle);
+
+                //float r = combineShorts(height, slope);
+                //float g = combineShorts(azimuth, elevation);
+                //float b = combineShorts(0, 0); // TODO: add more maps!
+                ////float a = combineShorts(0, 0);
+
+                cs[i] = new Color(
+                    percent(heights[i], minHeight, maxHeight),
+                    percent(slopes[i], minSlope, maxSlope),
+                    percent(ele, minEle, maxEle),
+                    percent(azi, minAzimuth, maxAzimuth));
+            }
+        }
+
+        maps.SetPixels(cs, 0);
+        maps.Apply();
+
+        File.WriteAllBytes("C:/Users/leozw/Desktop/ADC/out/" + name + ".png", maps.EncodeToPNG());
+
         return meshes;
     }
-    /// <summary>
-    /// Generates all texture maps for region
-    /// </summary>
-    private void generateMaps()
-    {
-        counts = lats.Count;//jusr assign it as a variable to increase efficiency marginally
-        generateHeightMap(gradient);
-        generateTextureMap(slopes, "slopes", flipped: false);
 
-        List<double> azimuths = new List<double>();
-        List<double> elevations = new List<double>();
-        for (int i = 0; i < counts; i++)
-        {
-            azimuths.Add(azimuthAngle(new geographic(lats[i] * Mathf.Deg2Rad, lons[i] * Mathf.Deg2Rad), new geographic(lat: 0.0, lon: 0.0), new position(361000, 0, -42100)));
-            elevations.Add(elevationAngle(new geographic(lats[i] * Mathf.Deg2Rad, lons[i] * Mathf.Deg2Rad), heights[i], 1737.4, new geographic(0, 0), 0, 6371));
-        }
-        generateTextureMap(elevations, "elevationAngles", false);
-        generateTextureMap(azimuths, "azimuth", false);
-    }
-    /// <summary>
-    /// generateHeightMap
-    /// </summary>
-    private void generateHeightMap(Gradient gradient)
-    {
-        
-        List<double> vertice = new List<double>();
-        
-        for (int i = 0; i < counts; i++)
-        {
-            vertice.Add(geographic.toCartesian(lats[i], lons[i], heights[i] + radius).z);
-            
-        }
-        generateTextureMap(vertice, "height",flipped:true);
-    }
-    /// <summary>
-    /// Generates Texture Map based on data and a gradient
-    /// </summary>
-    /// <param name="data">Data that will be displayed</param>
-    /// <param name="type">Type of map e.x. Azimuth Height etc.</param>
-    /// <param name="flipped">Whether or not to flip the gradient</param>
-    private void generateTextureMap(List<double> data,string type,bool flipped)
-    {
+    private short percentToShort(double v, double min, double max) => (short) (((v - min) / (max - min)) * 65535 - 32767);
+    private float percent(double v, double min, double max) => (float) ((v - min) / (max - min));
+    private float combineShorts(short a, short b) => BitConverter.ToSingle(BitConverter.GetBytes(a).Concat(BitConverter.GetBytes(b)).ToArray(), 0);
 
-        double minY = data.Min();
-        Debug.Log("MIN");
-        Debug.Log(minY);
-        Debug.Log("MAX");
-        
-        
-        double maxY= data.Max();
-
-        Debug.Log(maxY);
-        Color[] colors = new Color[counts];
-
-
-
-
-        
-        Texture2D tex = new Texture2D(trueXSize, trueYSize);
-        for (int i = 0; i < counts; i++)
-        {
-
-            float height = Mathf.InverseLerp((float)minY, (float)maxY, (float)data[i]);
-            if (flipped == true)
-            {
-                height = -1 * (height - (float).5)+.5f;
-            }
-            Vector2Int pos = OneDIndexToTwoD(i, trueXSize);
-            int tempx = pos.x;
-            pos.x = pos.y;
-            pos.y = tempx;
-            
-            colors[TwoDIndextoOneD(pos, trueXSize)] = gradient.Evaluate(height);//
-            //tex.SetPixel(i % vertice.Length, Mathf.FloorToInt(i / vertice.Length), gradient.Evaluate(height));
-
-
-        }
-        
-        
-        tex.SetPixels(colors);
-        //tex.SetPixels(colors);
-        Byte[] bytes = tex.EncodeToPNG();
-        
-        File.WriteAllBytes(general.regionalFileHostLocation.Split(',').Last().Trim() + name + "_"+type+"_TEXTURE.png", bytes);
-    }
-    public static int TwoDIndextoOneD(Vector2Int ind,int size) {
-        return (ind.y * size + ind.x);
-    }
-    public static Vector2Int OneDIndexToTwoD(int ind,int size)
-    {
-        return (new Vector2Int(ind%size,Mathf.FloorToInt(ind/size)));
-    }
     /// <summary>
     /// Generates Azimuth Angles
     /// </summary>
@@ -241,31 +209,23 @@ public class regionalMeshGenerator {
 
     /// <summary> Returns a 1D list (flattened) of all the values in the given regional CSV file. </summary>
     private List<double> csvParse(string path) {
-        
         List<double> listA = new List<double>();
-        using (var reader = new StreamReader(@path))
-        {
+        using (var reader = new StreamReader(@path)) {
             List<double> listB = new List<double>();
-            while (!reader.EndOfStream)
-            {
+            while (!reader.EndOfStream) {
                 var line = reader.ReadLine();
                 var values = line.Split(';');
-                for (int i = 0; i < values.Length; i += res)
-                {
-                    var values1 = values[i].Split(',');
-                    trueYSize = (int)Math.Floor((double)((values1.Length) / res));
 
-                    for (int n = 0; n < values1.Length; n += res)
-                    {
-                        listA.Add(double.Parse(values1[n]));
-                    }
+                for (int i = 0; i < values.Length; i += 1) {
+                    var values1 = values[i].Split(',');
+                    trueYSize = values1.Length;
+
+                    for (int n = 0; n < values1.Length; n += 1) listA.Add(double.Parse(values1[n]));
                 }
             }
         }
-        trueXSize = (int)Math.Floor((double)(listA.Count / (trueYSize)));
-        //trueYSize -= 1;
-        Debug.Log(trueXSize);
-        Debug.Log(trueYSize);
+
+        trueXSize = (int) Math.Floor((double) (listA.Count / trueYSize));
         return (listA);
     }
 

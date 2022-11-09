@@ -41,7 +41,7 @@ public static class master {
     public static List<crater> registeredCraters = new List<crater>();
     /// <summary> Remembers the current state of the program (ex if we are display terrain or not). </summary>
     /// <remarks> See <see cref="changeState(programStates)"/> and <see cref="onStateChange"/> </remarks>
-    public static programStates currentState {get; private set;}
+    public static programStates currentState {get; private set;} = programStates.interplanetary;
     #endregion
     #endregion VARIABLES
 
@@ -57,11 +57,7 @@ public static class master {
         if (ReferenceEquals(master.sun, null)) throw new ArgumentException("Could not find a sun in the program.");
 
         initialized = true;
-        // TODO: algorithm that starts from sun and descends tree to update, rather then depend on order that they are registered
-        foreach (planet p in registeredPlanets) {
-            p.updateScale();
-            p.updatePosition();
-        }
+        master.propagateUpdate();
     }
     /// <summary> Changes the current program state. Calls <see cref="onStateChange()"/> </summary>
     public static void changeState(programStates state) {

@@ -8,12 +8,11 @@ using System.Linq;
 using Newtonsoft.Json;
 
 public static class terrain {
-    public static int terrainTextureState = 0;
     private static List<GameObject> activeMeshes = new List<GameObject>();
     public static crater currentCrater;
     
-    public static void processRegion(string region, int r, int n,int res,Gradient gradient) {
-        regionalMeshGenerator reg = new regionalMeshGenerator(region, r, n, 1737.4,res,gradient);
+    public static void processRegion(string region, int r, int n) {
+        regionalMeshGenerator reg = new regionalMeshGenerator(region, r, n, 1737.4);
         Dictionary<Vector2Int, Mesh> meshes = reg.generate();
 
         Dictionary<string, Dictionary<string, long[]>> pos = new Dictionary<string, Dictionary<string, long[]>>();
@@ -51,15 +50,15 @@ public static class terrain {
         deserializedMeshData dmd = await MeshSerializer.quickDeserialize(Path.Combine(path, name), sp);
 
         UnityMainThreadDispatcher.Instance().Enqueue(() => {
-            GameObject go = GameObject.Instantiate(general.craterPrefab);
+            GameObject go = GameObject.Instantiate(general.craterTerrainPrefab);
             go.name = "terrain";
             go.transform.parent = general.bodyParent;
             go.transform.localPosition = Vector3.zero;
             go.transform.localEulerAngles = Vector3.zero;
-            go.GetComponent<MeshRenderer>().material = general.defaultMat;
-            
 
             Mesh m = dmd.generate();
+
+            // TODO generate uvs not here
             Vector3[] verts = m.vertices;
             Vector2[] uvs = new Vector2[verts.Length];
             float minX = 0;
@@ -96,6 +95,10 @@ public static class terrain {
         
             go.GetComponent<MeshFilter>().mesh = m;
 
+            Material mat = go.GetComponent<MeshRenderer>().sharedMaterial;
+
+            mat.SetInt("_map", 2);
+            mat.SetTexture("_mainTex", Resources.Load("maps/" + currentCrater.terrainData.name) as Texture);
 
             // the meshes were saved with a master.scale of 1000, however the current scale may not match
             // adjust the scale of the meshes so that it matches master.scale
@@ -143,23 +146,6 @@ public static class terrain {
         foreach (Vector2Int v in data.folderData) {
             if (!Directory.Exists(Path.Combine(output, data.name, v.x.ToString()))) return false;
         }
-        return true;
-    }
-
-    public static bool doesDataExist(terrainFilesInfo data) {
-        if (!doesFolderExist(data)) return false;
-
-        string output = general.regionalFileHostLocation.Split(',').Last().Trim();
-        foreach (Vector2Int v in data.folderData) {
-            string path = Path.Combine(output, data.name, v.x.ToString());
-            for (int i = 0; i < v.y; i++) {
-                for (int j = 0; j < v.y; j++) {
-                    string name = getTerrainFileName(i, j, data.name);
-                    if (!File.Exists(Path.Combine(path, name))) return false;
-                }
-            }
-        }
-
         return true;
     }
 
