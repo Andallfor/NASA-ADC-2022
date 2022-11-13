@@ -4,7 +4,6 @@ using UnityEngine;
 using System;
 
 /// <summary> Replacement for Vector3. Generally the z axis here will correspond to the y axis in Unity (and vice versa). </summary>
-/// <remarks> Unless otherwise specified, functions will modify the host (rather then return a new position).
 /// <para> Related classes: <see cref="geographic"/> </para> </remarks>
 public struct position {
     #region VARIABLES
@@ -21,14 +20,7 @@ public struct position {
 
     #region INSTANCE METHODS
     /// <summary> Swaps the z and y axis. </summary>
-    /// <returns> Both modifies itself and also returns itself. </summary>
-    public position swapAxis() {
-        double a = y;
-        y = z;
-        z = a;
-
-        return this;
-    }
+    public position swapAxis() => new position(x, z, y);
 
     // https://stackoverflow.com/questions/34050929/3d-point-rotation-algorithm
     /// <summary> Rotate a point by pitch, roll, yaw (radians). </summary>
@@ -63,12 +55,10 @@ public struct position {
         Math.Pow(y - p.y, 2) +
         Math.Pow(z - p.z, 2));
     
-    /// <summary> Force the vector to have a length of 1. </summary>
-    public void normalize() {
+    /// <summary> Normalize vector to have a length of 1. </summary>
+    public position normalize() {
         double l = magnitude();
-        x /= l;
-        y /= l;
-        z /= l;
+        return new position(x / l, y / l, z / l);
     }
 
     /// <summary> Get the magnitude of the vector. <summary>

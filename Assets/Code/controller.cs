@@ -60,6 +60,8 @@ public class controller : MonoBehaviour {
 
         master.markInit();
 
+        master.scale = master.scale; // update all planets scale
+
         Coroutine mainClock = StartCoroutine(internalClock(3600, int.MaxValue, (tick) => {
             master.incrementTime(0.0001);
 

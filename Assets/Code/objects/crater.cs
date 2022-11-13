@@ -44,8 +44,7 @@ public class crater {
 
     public void update() {
         position p = geo.toCartesian(parent.information.radius + 5.0) / (2.0 * parent.information.radius);
-        p.swapAxis();
-        representation.transform.localPosition = (Vector3) p;
+        representation.transform.localPosition = (Vector3) p.swapAxis();
 
         RaycastHit hit;
         if (Physics.Raycast(general.camera.transform.position,
