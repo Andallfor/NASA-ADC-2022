@@ -56,6 +56,7 @@ internal class bodyRotationalControls {
             rotation.z = adjustedDifference;
         }
 
+        // TODO -> have this scale based on screen size of planet, not some predefined ratio
         if (Input.mouseScrollDelta.y != 0) {
             if (master.currentState == programStates.interplanetary)
             {
@@ -73,6 +74,7 @@ internal class bodyRotationalControls {
         general.camera.transform.RotateAround(Vector3.zero, general.camera.transform.up, rotation.y);
         general.camera.transform.rotation *= Quaternion.AngleAxis(rotation.z, Vector3.forward);
         
+        // TODO -> slow down rotation as a vector, not each individual axis
         if (rotation.x != 0) {
             rotation.x = (float)(rotation.x * Mathf.Pow((float)0.1, Time.deltaTime));
             if (Mathf.Abs(rotation.x) < 0.1) { 

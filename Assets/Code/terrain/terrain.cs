@@ -164,12 +164,13 @@ public static class terrain {
             general.camera.transform.localPosition = new Vector3(0, 0, -5);
             general.camera.transform.localEulerAngles = new Vector3(0, 0, 0);
             general.camera.transform.RotateAround(Vector3.zero, general.camera.transform.right, -150);
-            
-            currentCrater.parent.representation.SetActive(false);
-            currentCrater.label.gameObject.SetActive(false);
-            currentCrater.button.enabled = false;
+
+            foreach (crater c in master.registeredCraters) {
+                c.parent.representation.SetActive(false);
+                c.label.gameObject.SetActive(false);
+                c.button.enabled = false;
+            }
         } else if (e.previousState == programStates.planetaryTerrain) { // cleanup
-            
             master.scale = 1000;
             master.onUpdateEnd -= update;
 
@@ -179,9 +180,11 @@ public static class terrain {
             general.camera.transform.localEulerAngles = Vector3.zero;
             general.bodyParent.transform.localEulerAngles = Vector3.zero;
 
-            currentCrater.parent.representation.SetActive(true);
-            currentCrater.label.gameObject.SetActive(true);
-            currentCrater.button.enabled = true;
+            foreach (crater c in master.registeredCraters) { 
+                c.parent.representation.SetActive(true);
+                c.label.gameObject.SetActive(true);
+                c.button.enabled = true;
+            }
 
             currentCrater = null;
 
