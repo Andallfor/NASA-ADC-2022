@@ -32,16 +32,11 @@ internal class bodyRotationalControls {
         else if (Input.GetMouseButton(0)) {
             Vector3 difference = Input.mousePosition - planetFocusMousePosition;
             planetFocusMousePosition = Input.mousePosition;
+            Vector2 adjustedDifference = new Vector2(-difference.y / Screen.height, difference.x / Screen.width) * 180f;
 
-            Vector2 adjustedDifference = new Vector2(-difference.y / Screen.height, difference.x / Screen.width);
-            adjustedDifference *= 100f;
-
-            if (master.currentState == programStates.interplanetary) adjustedDifference = new Vector2(
-                (float) (adjustedDifference.x / (1500.0 / master.scale)),
-                (float) (adjustedDifference.y / (1500.0 / master.scale)));
-
-            rotation.x = adjustedDifference.x;
-            rotation.y = adjustedDifference.y;
+            float percent = (float) master.scale / (1500000f / (float) master.scale);
+            rotation.x = adjustedDifference.x * percent;
+            rotation.y = adjustedDifference.y * percent;
             rotation.z = 0;
         }
 
@@ -73,19 +68,11 @@ internal class bodyRotationalControls {
         general.camera.transform.RotateAround(Vector3.zero, general.camera.transform.right, rotation.x);
         general.camera.transform.RotateAround(Vector3.zero, general.camera.transform.up, rotation.y);
         general.camera.transform.rotation *= Quaternion.AngleAxis(rotation.z, Vector3.forward);
-        
-        // TODO -> slow down rotation as a vector, not each individual axis
-        if (rotation.x != 0) {
-            rotation.x = (float)(rotation.x * Mathf.Pow((float)0.1, Time.deltaTime));
-            if (Mathf.Abs(rotation.x) < 0.1) { 
-                rotation.x = 0;
-            }
-        }
-        if (rotation.y != 0) {
-            rotation.y = (float)(rotation.y * Mathf.Pow((float)0.1, Time.deltaTime));
-            if (Mathf.Abs(rotation.y) < 0.1) { 
-                rotation.y = 0;
-            }
-        }
+
+        if (rotation.magnitude < 0.01f) rotation = Vector3.zero;
+        else rotation = new Vector3(
+            rotation.x * Mathf.Pow(0.05f, Time.deltaTime),
+            rotation.y * Mathf.Pow(0.05f, Time.deltaTime),
+            rotation.z * Mathf.Pow(0.05f, Time.deltaTime));
     }
 }
