@@ -39,7 +39,7 @@ public struct position {
         double Azy = Math.Cos(pitch) * Math.Sin(roll);
         double Azz = Math.Cos(pitch) * Math.Cos(roll);
 
-        
+
         double _x = Axx * x + Axy * y + Axz * z;
         double _y = Ayx * x + Ayy * y + Ayz * z;
         double _z = Azx * x + Azy * y + Azz * z;
@@ -54,7 +54,20 @@ public struct position {
         Math.Pow(x - p.x, 2) +
         Math.Pow(y - p.y, 2) +
         Math.Pow(z - p.z, 2));
-    
+
+    public static position cross(position v1, position v2)
+    {
+      return new position(
+      v1.y * v2.z - v1.y * v2.x,
+      v1.z * v2.x - v1.x * v2.z,
+      v1.x * v2.y - v1.y * v2.x);
+    }
+
+    public static double dot(position v1, position v2)
+    {
+      return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+    }    
+
     /// <summary> Normalize vector to have a length of 1. </summary>
     public position normalize() {
         double l = magnitude();

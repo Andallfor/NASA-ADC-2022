@@ -46,7 +46,7 @@ public class regionalMeshGenerator {
         heights = csvParse(files.First(x => x.ToLower().Contains("height")));
         slopes = csvParse(files.First(x => x.ToLower().Contains("slope")));
         /*
-        
+
                      idealWidth                reminderWidth
             (i,j) (0,0)                      (2,0)
                     +===========+============+======|
@@ -61,7 +61,7 @@ public class regionalMeshGenerator {
      reminderHeight |           |            |      |
                     |           |            |      |
                     |===============================|
-        
+
         + => start of a coordinate/box
         */
 
@@ -85,7 +85,7 @@ public class regionalMeshGenerator {
 
                 Vector3[] verts = new Vector3[width * height];
                 Vector2[] uvs = new Vector2[width * height];
-                
+
                 int k = 0;
                 for (int y = yStart; y < yStart + height; y++) {
                     for (int x = xStart; x < xStart + width; x++) {
@@ -204,7 +204,7 @@ public class regionalMeshGenerator {
         position vector = epos - mpos;
         double range = Math.Sqrt(Math.Pow(vector.x, 2) + Math.Pow(vector.y, 2) + Math.Pow(vector.z, 2));
         double rz = vector.x * Math.Cos(moon.lat) * Math.Cos(moon.lon) + vector.y * Math.Cos(moon.lat) * Math.Sin(moon.lon) + vector.z * Math.Sin(moon.lat);
-        return Mathf.Rad2Deg*Math.Asin(rz / range);
+        return Mathf.Rad2Deg * Math.Asin(rz / range);
     }
 
     /// <summary> Returns a 1D list (flattened) of all the values in the given regional CSV file. </summary>
@@ -231,7 +231,7 @@ public class regionalMeshGenerator {
 
     /// <summary> Generates a mesh given a vector3 array of vertices. </summary>
     private Mesh generateMesh(Vector3[] vertice, int xSize, int ySize) {
-        
+
         Mesh m = new Mesh();
         m.indexFormat= UnityEngine.Rendering.IndexFormat.UInt32;
         //m.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32; //NEEDS TO BE UINT32 APPARENTLY
