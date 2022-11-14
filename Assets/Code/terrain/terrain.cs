@@ -153,7 +153,6 @@ public static class terrain {
 
     public static void onStateChange(object s, stateChangeEvent e) {
         if (e.newState == programStates.planetaryTerrain) { // setup
-            
             master.scale = 4;
             terrain.generate(currentCrater.terrainData, 0);
             master.onUpdateEnd += update;

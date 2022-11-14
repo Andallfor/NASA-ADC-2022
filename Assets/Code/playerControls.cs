@@ -35,6 +35,7 @@ internal class bodyRotationalControls {
             Vector2 adjustedDifference = new Vector2(-difference.y / Screen.height, difference.x / Screen.width) * 180f;
 
             float percent = (float) master.scale / (1500000f / (float) master.scale);
+            if (master.currentState == programStates.planetaryTerrain) percent = 1;
             rotation.x = adjustedDifference.x * percent;
             rotation.y = adjustedDifference.y * percent;
             rotation.z = 0;
