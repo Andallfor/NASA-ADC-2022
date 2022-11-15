@@ -10,10 +10,11 @@ using Newtonsoft.Json;
 public static class terrain {
     private static List<GameObject> activeMeshes = new List<GameObject>();
     public static crater currentCrater;
+    public static Dictionary<string, terrainFilesInfo> craterData = new Dictionary<string, terrainFilesInfo>();
     
     public static void processRegion(string region, int r, int n) {
         regionalMeshGenerator reg = new regionalMeshGenerator(region, r, n, 1737.4);
-        Dictionary<Vector2Int, Mesh> meshes = reg.generate();
+        var regData = reg.generate();
 
         Dictionary<string, Dictionary<string, long[]>> pos = new Dictionary<string, Dictionary<string, long[]>>();
 
@@ -31,18 +32,23 @@ public static class terrain {
         // dont question it
         Directory.CreateDirectory(Path.Combine(output, region, r.ToString()));
 
-        foreach (var kvp in meshes) {
+        string pathToOutput = Path.Combine(output, region, r.ToString());
+
+        foreach (var kvp in regData.meshes) {
             string name = getTerrainFileName(kvp.Key.x, kvp.Key.y, region);
             byte[] data = MeshSerializer.SerializeMesh(kvp.Value, name, ref pos);
 
-            File.WriteAllBytes(Path.Combine(output, region, r.ToString(), name + ".trn"), data);   
+            File.WriteAllBytes(Path.Combine(pathToOutput, name + ".trn"), data);
         }
-        File.WriteAllText(Path.Combine(output, region, r.ToString(), "data.json"), JsonConvert.SerializeObject(pos));
+        File.WriteAllText(Path.Combine(pathToOutput, "data.json"), JsonConvert.SerializeObject(pos));
+        File.WriteAllText(Path.Combine(output, region, "bounds.json"), JsonConvert.SerializeObject(regData.bounds));
+        //File.WriteAllBytes(Path.Combine(output, region, region.Trim() + "_map.png"), regData.map.EncodeToPNG());
     }
 
     public static async void generate(string region, int resolution, int x, int y) {
         string name = $"{region}={x}={y}.trn";
-        string path = Path.Combine(general.regionalFileHostLocation.Split(',').Last().Trim(), region, resolution.ToString());
+        string output = general.regionalFileHostLocation.Split(',').Last().Trim();
+        string path = Path.Combine(output, region, resolution.ToString());
 
         Dictionary<string, Dictionary<string, long[]>> sp = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, long[]>>>(
             File.ReadAllText(Path.Combine(path, "data.json")));
@@ -98,7 +104,7 @@ public static class terrain {
             Material mat = go.GetComponent<MeshRenderer>().sharedMaterial;
 
             mat.SetInt("_map", 2);
-            mat.SetTexture("_mainTex", Resources.Load("maps/" + currentCrater.terrainData.name) as Texture);
+            mat.SetTexture("_mainTex", craterData[region].map);
 
             // the meshes were saved with a master.scale of 1000, however the current scale may not match
             // adjust the scale of the meshes so that it matches master.scale
@@ -127,6 +133,38 @@ public static class terrain {
 
     public static void registerMesh(GameObject go) {
         activeMeshes.Add(go);
+    }
+
+    public static void registerCrater(string name, terrainFilesInfo data) {
+        craterData[name] = data;
+    }
+
+    public static node[] getNodeData(Vector2Int start, Vector2Int end, string name) {
+        Color[] cs = craterData[name].map.GetPixels(start.x, start.y, end.x - start.x, end.y - start.y);
+
+        return colorToNode(cs, craterData[name]);
+    }
+
+    public static node getNodeData(Vector2Int v, string name) {
+        Color c = craterData[name].map.GetPixel(v.x, v.y);
+
+        return colorToNode(new Color[1] {c}, craterData[name])[0];
+    }
+
+    private static node[] colorToNode(Color[] cs, terrainFilesInfo info) {
+        node[] output = new node[cs.Length];
+        for (int i = 0; i < cs.Length; i++) {
+            Color c = cs[i];
+            node n = new node();
+            n.height = c.r * (info.bounds["height"][1] - info.bounds["height"][0]) + info.bounds["height"][0];
+            n.slope = c.g * (info.bounds["slope"][1] - info.bounds["slope"][0]) + info.bounds["slope"][0];
+            n.elevation = c.b * (info.bounds["elevation"][1] - info.bounds["elevation"][0]) + info.bounds["elevation"][0];
+            n.azimuth = c.a * (info.bounds["azimuth"][1] - info.bounds["azimuth"][0]) + info.bounds["azimuth"][0];
+
+            output[i] = n;
+        }
+
+        return output;
     }
 
     public static void update(object sender, EventArgs e) {

@@ -4,6 +4,7 @@ using UnityEngine;
 using System.IO;
 using System;
 using System.Linq;
+using Newtonsoft.Json;
 
 /// <summary> Brute force generation of regional files. Used in pre-processing of terrain. </summary>
 public class regionalMeshGenerator {
@@ -38,13 +39,14 @@ public class regionalMeshGenerator {
 
     /// <summary> Generate the region. </summary>
     /// <returns> A dictionary of the meshes. The key is (0, 0) to (numSubMeshes, numSubMeshes) and the mesh is the correlated mesh. </returns>
-    public Dictionary<Vector2Int, Mesh> generate() {
+    public regionalMeshOutputData generate() {
         string[] files = Directory.GetFiles(pathToRegion);
         // good code trust
         lats = csvParse(files.First(x => x.ToLower().Contains("latitude")));
         lons = csvParse(files.First(x => x.ToLower().Contains("longitude")));
         heights = csvParse(files.First(x => x.ToLower().Contains("height")));
         slopes = csvParse(files.First(x => x.ToLower().Contains("slope")));
+
         /*
 
                      idealWidth                reminderWidth
@@ -136,21 +138,11 @@ public class regionalMeshGenerator {
             for (int x = 0; x < trueXSize - 1; x++) {
                 // for now have gradients be relative (to the max value)
                 int i = y * trueXSize + x;
-                short height = percentToShort(heights[i], minHeight, maxHeight);
-                short slope = percentToShort(slopes[i], minSlope, maxSlope);
 
                 double lat = lats[i];
                 double lon = lons[i];
                 double azi = azimuthAngle(new geographic(lat * Mathf.Deg2Rad, lon * Mathf.Deg2Rad), new geographic(0, 0), new position(361000, 0, -42100));
                 double ele = elevationAngle(new geographic(lat * Mathf.Deg2Rad, lon * Mathf.Deg2Rad), heights[i], 1737.4, new geographic(0, 0), 0, 6371);
-
-                short azimuth = percentToShort(azi, minAzimuth, maxAzimuth);
-                short elevation = percentToShort(ele, minEle, maxEle);
-
-                //float r = combineShorts(height, slope);
-                //float g = combineShorts(azimuth, elevation);
-                //float b = combineShorts(0, 0); // TODO: add more maps!
-                ////float a = combineShorts(0, 0);
 
                 cs[i] = new Color(
                     percent(heights[i], minHeight, maxHeight),
@@ -163,14 +155,20 @@ public class regionalMeshGenerator {
         maps.SetPixels(cs, 0);
         maps.Apply();
 
-        File.WriteAllBytes("C:/Users/leozw/Desktop/ADC/out/" + name + ".png", maps.EncodeToPNG());
-
-        return meshes;
+        regionalMeshOutputData data = new regionalMeshOutputData();
+        data.meshes = meshes;
+        data.map = maps;
+        data.bounds = new Dictionary<string, double[]>() {
+            {"height", new double[2] {minHeight, maxHeight}},
+            {"slope", new double[2] {minSlope, maxSlope}},
+            {"elevation", new double[2] {minEle, maxEle}},
+            {"azimuth", new double[2] {minAzimuth, maxAzimuth}},
+            {"size", new double[2] {trueXSize, trueYSize}}};
+        
+        return data;
     }
 
-    private short percentToShort(double v, double min, double max) => (short) (((v - min) / (max - min)) * 65535 - 32767);
     private float percent(double v, double min, double max) => (float) ((v - min) / (max - min));
-    private float combineShorts(short a, short b) => BitConverter.ToSingle(BitConverter.GetBytes(a).Concat(BitConverter.GetBytes(b)).ToArray(), 0);
 
     /// <summary>
     /// Generates Azimuth Angles
@@ -179,13 +177,13 @@ public class regionalMeshGenerator {
     /// <param name="onEarth">latitude and longitude of position on earth</param>
     /// <param name="earthPosition">position of earth in km assuming moon is [0,0,0]</param>
     /// <returns>double that is azimuth angle</returns>
-    public static double azimuthAngle(geographic moonDegrees, geographic onEarth, position earthPosition)
-    {
+    public static double azimuthAngle(geographic moonDegrees, geographic onEarth, position earthPosition) {
         geographic earthDegrees = new geographic(Math.Atan2(-42100_000, 361000_000), 0);
         geographic earth = new geographic(earthDegrees.lat, earthDegrees.lon);
         geographic moon = new geographic(moonDegrees.lat, moonDegrees.lon);
         return Mathf.Rad2Deg * Math.Atan2((Math.Sin(earth.lon - moon.lon) * Math.Cos(earth.lat)), ((Math.Cos(moon.lat) * Math.Sin(earth.lat)) - (Math.Sin(moon.lat) * Math.Cos(earth.lat) * Math.Cos(earth.lon - moon.lat))));
     }
+
     /// <summary>
     /// elevation angles
     /// </summary>
@@ -257,4 +255,10 @@ public class regionalMeshGenerator {
 
         return m;
     }
+}
+
+public struct regionalMeshOutputData {
+    public Dictionary<Vector2Int, Mesh> meshes;
+    public Texture2D map;
+    public Dictionary<string, double[]> bounds;
 }

@@ -4,11 +4,11 @@ Shader "Custom/mapShader" {
         _map ("Map to Use", Int) = 0 // 0 to 3
         _thres ("Use Threshold", Int) = 0 // 0 or 1
         // r, g, b, start of key
-        _key1 ("Key One", Color) = (0.99824, 0.99212, 0.74902, 0)
-        _key2 ("Key Two", Color) = (0.99824, 0.53725, 0.38039, 0.25)
+        _key1 ("Key One", Color) = (0.0, 0.0, 0.01569, 1)
+        _key2 ("Key Two", Color) = (0.317647, 0.07059, 0.48627, 0.75)
         _key3 ("Key Three", Color) = (0.71764, 0.215686, 0.47451, 0.50)
-        _key4 ("Key Four", Color) = (0.317647, 0.07059, 0.48627, 0.75)
-        _key5 ("Key Five", Color) = (0.0, 0.0, 0.01569, 1)
+        _key4 ("Key Four", Color) = (0.99824, 0.53725, 0.38039, 0.25)
+        _key5 ("Key Five", Color) = (0.99824, 0.99212, 0.74902, 0)
     }
     SubShader {
         Pass {

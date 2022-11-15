@@ -4,6 +4,9 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using System;
+using Newtonsoft.Json;
+using System.Linq;
+using System.IO;
 
 /// <summary> Represents a region of terrain. Requires associated terrain data. </summary>
 public class crater {
@@ -38,6 +41,8 @@ public class crater {
 
         update();
         updateScale();
+
+        terrain.registerCrater(terrainData.name, terrainData);
 
         master.registeredCraters.Add(this);
     }
@@ -74,9 +79,16 @@ public struct terrainFilesInfo {
     public string name;
     /// <summary> Holds the information regarding each "level" of terrain generated. (x=resolution, y=numSubMeshes). </summary>
     public List<Vector2Int> folderData;
+    public Dictionary<string, double[]> bounds;
+    public string pathToFolder;
+    public Texture2D map;
 
     public terrainFilesInfo(string name, List<Vector2Int> folderData) {
         this.name = name;
         this.folderData = folderData;
+
+        pathToFolder = Path.Combine(general.regionalFileHostLocation.Split(',').Last().Trim(), name);
+        bounds = JsonConvert.DeserializeObject<Dictionary<string, double[]>>(File.ReadAllText(Path.Combine(pathToFolder, "bounds.json")));
+        map = Resources.Load("maps/" + name) as Texture2D;
     }
 }
