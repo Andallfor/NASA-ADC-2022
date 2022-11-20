@@ -1,18 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-6517487657467039807
-MonoBehaviour:
-  m_ObjectHideFlags: 11
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  version: 5
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
@@ -78,7 +65,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _mainTex:
-        m_Texture: {fileID: 2800000, guid: 320bdbbbf1be947429b61fabd4dcc190, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -128,9 +115,22 @@ Material:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
-    - _key1: {r: 0, g: 0, b: 0.01569, a: 1}
-    - _key2: {r: 0.317647, g: 0.07059, b: 0.48627, a: 0.75}
+    - _key1: {r: 0.99824, g: 0.99212, b: 0.74902, a: 0}
+    - _key2: {r: 0.99824, g: 0.53725, b: 0.38039, a: 0.25}
     - _key3: {r: 0.71764, g: 0.215686, b: 0.47451, a: 0.5}
-    - _key4: {r: 0.99824, g: 0.53725, b: 0.38039, a: 0.25}
-    - _key5: {r: 0.99824, g: 0.99212, b: 0.74902, a: 0}
+    - _key4: {r: 0.317647, g: 0.07059, b: 0.48627, a: 0.75}
+    - _key5: {r: 0, g: 0, b: 0.01569, a: 1}
   m_BuildTextureStacks: []
+--- !u!114 &4471784426145711354
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 5

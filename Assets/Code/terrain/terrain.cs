@@ -8,7 +8,7 @@ using System.Linq;
 using Newtonsoft.Json;
 
 public static class terrain {
-    private static List<GameObject> activeMeshes = new List<GameObject>();
+    public static List<GameObject> activeMeshes = new List<GameObject>();
     public static crater currentCrater;
     public static Dictionary<string, terrainFilesInfo> craterData = new Dictionary<string, terrainFilesInfo>();
     
@@ -60,11 +60,11 @@ public static class terrain {
             go.name = "terrain";
             go.transform.parent = general.bodyParent;
             go.transform.localPosition = Vector3.zero;
-            go.transform.localEulerAngles = Vector3.zero;
 
             Mesh m = dmd.generate();
 
             // TODO generate uvs not here
+            // TODO: bug -> if mesh num != 1, uvs do not map correctly
             Vector3[] verts = m.vertices;
             Vector2[] uvs = new Vector2[verts.Length];
             float minX = 0;
@@ -193,7 +193,7 @@ public static class terrain {
         if (e.newState == programStates.planetaryTerrain) { // setup
             master.scale = 4;
             terrain.generate(currentCrater.terrainData, 0);
-            master.onUpdateEnd += update;
+            master.onScaleChange += update;
 
             master.playerPosition = currentCrater.parent.rotateLocalGeo(currentCrater.geo, 10).swapAxis();
             //general.bodyParent.transform.localEulerAngles = currentCrater.geo.rotateToUp();
@@ -209,7 +209,7 @@ public static class terrain {
             }
         } else if (e.previousState == programStates.planetaryTerrain) { // cleanup
             master.scale = 1000;
-            master.onUpdateEnd -= update;
+            master.onScaleChange -= update;
 
             master.playerPosition = new position(0, 0, 0);
 

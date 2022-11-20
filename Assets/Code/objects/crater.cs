@@ -27,6 +27,7 @@ public class crater {
         this.terrainData = terrainData;
 
         this.representation = GameObject.Instantiate(general.craterPrefab, Vector3.zero, Quaternion.identity, parent.representation.transform);
+        this.representation.name = name;
 
         GameObject go = GameObject.Instantiate(general.buttonPrefab, Vector3.zero, Quaternion.identity, general.labelParent);
         button = go.GetComponent<Button>();

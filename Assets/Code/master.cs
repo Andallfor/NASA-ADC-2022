@@ -22,6 +22,7 @@ public static class master {
         _scale = value;
 
         foreach (planet p in registeredPlanets) p.updateScale();
+        master.onScaleChange(null, EventArgs.Empty);
     }}
     private static double _scale = 1000;
     /// <summary> The current program's time. Use <see cref="getCurrentTime()"/> and <see cref="incrementTime(double)"/> </summary>
@@ -42,6 +43,8 @@ public static class master {
     /// <summary> Remembers the current state of the program (ex if we are display terrain or not). </summary>
     /// <remarks> See <see cref="changeState(programStates)"/> and <see cref="onStateChange"/> </remarks>
     public static programStates currentState {get; private set;} = programStates.interplanetary;
+    public static double timestep = 0.0001;
+    public const double defaultTimestep = 0.0001;
     #endregion
     #endregion VARIABLES
 
@@ -105,5 +108,6 @@ public static class master {
     public static event EventHandler<stateChangeEvent> onStateChange = delegate {};
     /// <summary> Event that is called at the end of every tick. </summary>
     public static event EventHandler onUpdateEnd = delegate {};
+    public static event EventHandler onScaleChange = delegate {};
     #endregion EVENTS
 }

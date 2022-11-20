@@ -1,52 +1,49 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Threading.Tasks;
 
+public class visibility : MonoBehaviour {
+    private static Queue<visResponse> queue = new Queue<visResponse>();
+    public static async Task<bool> getVisibility(int meshIndex, position worldPos, Vector3 heightOffset, int activeMeshNum = 0, bool drawDebug = false) {
+        GameObject go = terrain.activeMeshes[activeMeshNum];
 
-public class visibility {
+        if (go.GetComponent<MeshCollider>() == null) go.AddComponent<MeshCollider>();
 
-    private static double EPSILON = 0.0000001;
+        Vector3 v = go.GetComponent<MeshFilter>().sharedMesh.vertices[meshIndex];
+        v = new Vector3(
+            v.x * go.transform.lossyScale.x,
+            v.y * go.transform.lossyScale.y,
+            v.z * go.transform.lossyScale.z)
+            + heightOffset;
 
-    public static bool rayIntersectsTriangle(position rayOrigin, position rayVector, position vertex0, position vertex1, position vertex2)
-    {
-        position edge1, edge2, h, s, q;
-        double a, f, u, v;
+        // adjust worldPos
+        position to = ((worldPos - master.referenceFrame - master.playerPosition) / master.scale).swapAxis();
+        
+        visResponse response = new visResponse();
+        response.start = v;
+        response.dir = (Vector3) worldPos - v;
+        response.finished = false;
 
-        edge1 = vertex1 - vertex0;
-        edge2 = vertex2 - vertex0;
+        queue.Enqueue(response);
 
-        h = position.cross(rayVector, edge2);
+        while (!response.finished) await Task.Delay(32); // check every other frame
 
-        a = position.dot(edge1,h);
-        if (a > -1 * EPSILON && a < EPSILON)
-        {
-            return false;    // This ray is parallel to this triangle.
-        }
-        f = 1.0 / a;
-        s = (rayOrigin - vertex0);
-        u = f * (position.dot(s,h));
-        if (u < 0.0 || u > 1.0)
-        {
-            return false;
-        }
-        q = position.cross(s, edge1);
-        v = f * position.dot(rayVector, q);
-        if (v < 0.0 || u + v > 1.0)
-        {
-            return false;
-        }
-        // At this stage we can compute t to find out where the intersection point is on the line.
-        double t = f * position.dot(edge2, q);
-        if (t > EPSILON) // ray intersection
-        {
-            // to find where intersection
-            //outIntersectionPoint = new position(0.0, 0.0, 0.0);
-            //outIntersectionPoint.scaleAdd(t, rayVector, rayOrigin);
-            return true;
-        }
-        else // This means that there is a line intersection but not a ray intersection.
-        {
-            return false;
+        if (drawDebug) Debug.DrawLine(v, (Vector3) worldPos - v, response.hit ? Color.red : Color.green, 10);
+
+        return response.hit;
+    }
+
+    private void FixedUpdate() {
+        for (int i = 0; i < queue.Count; i++) {
+            visResponse v = queue.Dequeue();
+            v.hit = Physics.Raycast(v.start, v.dir, float.MaxValue, 1 << 7);
+            v.finished = true;
         }
     }
+}
+
+internal class visResponse {
+    public Vector3 start, dir;
+    public bool hit, finished;
 }

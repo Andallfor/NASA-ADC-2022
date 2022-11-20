@@ -4,10 +4,42 @@ using UnityEngine;
 using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 
 public class controller : MonoBehaviour {
+    public Texture2D tex;
+    public void Update() {
+        if (Input.GetKeyDown("a")) {
+            test();
+        }
+    }
+
+    private async void test() {
+        int bx = Mathf.Min(255, (int) Math.Floor(terrain.currentCrater.terrainData.bounds["size"][0] / 20.0));
+        int by = Mathf.Min(255, (int) Math.Floor(terrain.currentCrater.terrainData.bounds["size"][1] / 20.0));
+        tex = new Texture2D(bx, by);
+        Color[] c = new Color[bx * by];
+        Task<bool>[] tasks = new Task<bool>[bx * by];
+        for (int y = 0; y < by; y++) {
+            for (int x = 0; x < bx; x++) {
+                int index = x + y * bx;
+                tasks[index] = visibility.getVisibility(index, new position(361000, 0, -42100), Vector3.zero, drawDebug: false);
+            }
+        }
+
+        await Task.WhenAll(tasks);
+
+        for (int i = 0; i < tasks.Length; i++) c[i] = tasks[i].Result ? Color.red : Color.green;
+
+        tex.SetPixels(c);
+        tex.Apply();
+
+        byte[] data = tex.EncodeToPNG();
+        File.WriteAllBytes("C:/Users/leozw/Desktop/out.png", data);
+    }
+
     void Awake() {
-        //terrain.processRegion("haworth", 20, 1);
+        //terrain.processRegion("haworth", 20, 1); // TODO: 20 actually isnt big enough, some values are still cut off
         //terrain.processRegion("nobile rim 1", 20, 1);
         //terrain.processRegion("nobile rim 2", 20, 1);
         //terrain.processRegion("malapert massif", 20, 1);
@@ -20,7 +52,6 @@ public class controller : MonoBehaviour {
         //terrain.processRegion("de gerlache rim 2", 20, 1);
         //terrain.processRegion("faustini rim a", 20, 1);
         //terrain.processRegion("leibnitz beta plateau", 20, 1);
-        //return;
 
         //globalMeshGenerator.initialize();
         //List<Vector2Int> areas = new List<Vector2Int>() {new Vector2Int(15, 30), new Vector2Int(30, 30), /*new Vector2Int(15, 60), new Vector2Int(30, 60)*/};
@@ -52,6 +83,11 @@ public class controller : MonoBehaviour {
         crater deGerlacheKocherMassif =   new crater("De Gerlache Kocher Massif",  new geographic(-85.8252227835536, -116.321872646458), moon, new terrainFilesInfo("de gerlache kocher massif",  new List<Vector2Int>() {new Vector2Int(20, 1)}));
         crater deGerlacheRim1 =           new crater("De Gerlache Rim 1",          new geographic(-88.6745888041235, -67.9382548686084), moon, new terrainFilesInfo("de gerlache rim 1",          new List<Vector2Int>() {new Vector2Int(20, 1)}));
         crater deGerlacheRim2 =           new crater("De Gerlache Rim 2",          new geographic(-88.2197331954664, -64.6329487169338), moon, new terrainFilesInfo("de gerlache rim 2",          new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater faustiniRimA =             new crater("Faustini Rim A",             new geographic(-87.8810364565, 90.0000000000112),     moon, new terrainFilesInfo("faustini rim a",             new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater leibnitzBetaPlateau =      new crater("Leibnitz Beta Plateau",      new geographic(-85.4240543764601, 31.7427274315016),  moon, new terrainFilesInfo("leibnitz beta plateau",      new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater malapertMassif =           new crater("Malapert Massif",            new geographic(-85.9898087775699, -0.23578026342289), moon, new terrainFilesInfo("malapert massif",            new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater nobileRim1 =               new crater("Nobile Rim 1",               new geographic(-85.4341491794868, 37.3666165277427),  moon, new terrainFilesInfo("nobile rim 1",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater nobileRim2 =               new crater("Nobile Rim 2",               new geographic(-83.9510469034538, 58.8220823262493),  moon, new terrainFilesInfo("nobile rim 2",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
 
         body.addFamilyNode(sun, earth);
         body.addFamilyNode(earth, moon);
@@ -63,7 +99,7 @@ public class controller : MonoBehaviour {
         master.scale = master.scale; // update all planets scale
 
         Coroutine mainClock = StartCoroutine(internalClock(3600, int.MaxValue, (tick) => {
-            master.incrementTime(0.0001);
+            master.incrementTime(master.timestep);
 
             master.propagateUpdate();
             

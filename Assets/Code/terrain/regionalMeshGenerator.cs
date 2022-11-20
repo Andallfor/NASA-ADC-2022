@@ -95,8 +95,7 @@ public class regionalMeshGenerator {
                         double lat = lats[index];
                         double lon = lons[index];
                         double h = heights[index];
-                        position p = (geographic.toCartesian(lat, lon, h / 1000.0 + radius) - offset) / master.scale;
-                        p.swapAxis(); // unity has y axis upwards, but calculations use z as up
+                        position p = ((geographic.toCartesian(lat, lon, h / 1000.0 + radius) - offset) / master.scale).swapAxis();
 
                         verts[k] = (Vector3) p;
                         uvs[k] = new Vector2((float) x / width, (float) y / height);
