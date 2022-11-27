@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 public static class openJpegWrapper {
-    public static decompTerrainData requestTerrain(string file, geographic offset, Vector2Int start, Vector2Int end, uint res, uint quality) {
+    public static int[] requestTerrain(string file, Vector2Int start, Vector2Int end, uint res, uint quality) {
         // TODO: add error checking
         // TODO: test across a lot of systems to ensure endianess is respected!
         IntPtr dparam = openjpeg_openjp2_opj_dparameters_t_new();
@@ -37,6 +37,9 @@ public static class openJpegWrapper {
         uint nrows = openjpeg_openjp2_opj_image_comp_t_get_h(imgc);
         uint ncols = openjpeg_openjp2_opj_image_comp_t_get_w(imgc);
 
+        int power = (int) Math.Pow(2, res);
+        if (nrows * power != end.y - start.y || ncols * power != end.x - start.x) Debug.LogWarning("OpenJpeg: Output height or width does not match desired!");
+
         long len = 4 * nrows * ncols;
         byte[] data = new byte[len];
 
@@ -48,14 +51,8 @@ public static class openJpegWrapper {
 
         int[] formatted = new int[nrows * ncols];
         Buffer.BlockCopy(data, 0, formatted, 0, data.Length);
-        
-        decompTerrainData d = new decompTerrainData();
-        d.height = (int) nrows;
-        d.width = (int) ncols;
-        d.data = formatted;
-        d.offset = offset;
 
-        return d;
+        return formatted;
     }
 
     private const string lib = "OpenJpegDotNetNative";
@@ -85,6 +82,9 @@ public static class openJpegWrapper {
 
 public struct decompTerrainData {
     public int[] data;
-    public int height, width;
+    public Vector2Int size, srcSize, start, end;
     public geographic offset;
+    public int rlevel, res;
+    public bool isSmall;
+    public float stepSizeGeoX, stepSizeGeoY, fileLengthX, fileLengthY;
 }

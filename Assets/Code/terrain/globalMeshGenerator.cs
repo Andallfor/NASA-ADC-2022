@@ -5,42 +5,80 @@ using System.IO;
 using System;
 
 public static class globalMeshGenerator {
-    private static int[] triangles = genTriangles(250, 250);
-    private const int stepSizeGeoX = 15, stepSizeGeoY = 30, meshSizeX = 250, meshSizeY = 250, fileLengthX = 32000, fileLengthY = 16000;
+    private static Dictionary<Vector2Int, int[]> triangles = new Dictionary<Vector2Int, int[]>() {
+        {new Vector2Int(250, 250), genTriangles(250, 250)},
+        {new Vector2Int(200, 200), genTriangles(200, 200)}};
     public static string folder;
 
-    public static decompTerrainData requestGlobalTerrain(Vector2Int fileStart, Vector2Int pStart, Vector2Int pEnd, int res, int qual) {
+    public static decompTerrainData requestGlobalTerrain(Vector2Int fileStart, Vector2Int pStart, Vector2Int pEnd, int rlevel, int qual, bool isSmall) {
         double x = fileStart.x;
         if (fileStart.x < 0) x += 360f;
 
-        string name = Path.Combine(folder, $"trn_1024_{formatLat(fileStart.y)}_{formatLat(fileStart.y + 15)}_{x}_{x + 30}.jp2");
+        decompTerrainData decomp = new decompTerrainData();
+        decomp.offset = new geographic(fileStart.y, fileStart.x);
+        decomp.srcSize = new Vector2Int(pEnd.x - pStart.x, pEnd.y - pStart.y);
+        decomp.size = new Vector2Int(decomp.srcSize.x / (int) Math.Pow(2, rlevel), decomp.srcSize.y / (int) Math.Pow(2, rlevel));
+        decomp.res = (int) Math.Pow(2, rlevel);
+        decomp.start = pStart;
+        decomp.end = pEnd;
+        decomp.isSmall = isSmall;
+        if (isSmall) {
+            decomp.stepSizeGeoX = 90;
+            decomp.stepSizeGeoY = 45;
+            decomp.fileLengthX = 3200;
+            decomp.fileLengthY = 1600;
+        } else {
+            decomp.stepSizeGeoX = 30;
+            decomp.stepSizeGeoY = 15;
+            decomp.fileLengthX = 32000;
+            decomp.fileLengthY = 16000;
+        }
+
+        string prefix = isSmall ? "small_" : "";
+        string ns = format(fileStart.y, 2);
+        string ne = format(fileStart.y + (int) decomp.stepSizeGeoY, 2);
+        string ss = format((int) x, 3, false);
+        string se = format((int) x + (int) decomp.stepSizeGeoX, 3, false);
+        string name = Path.Combine(folder, prefix + $"trn_1024_{ns}_{ne}_{ss}_{se}.jp2");
+
         if (!File.Exists(name)) throw new ArgumentException("Unable to find specified file " + name);
 
         // TODO: add function that reads header of files to extract the allowed ranges of these numbers?
-        return openJpegWrapper.requestTerrain(name, new geographic(fileStart.y, fileStart.x), pStart, pEnd, (uint) res, (uint) qual);
+        int[] heights = openJpegWrapper.requestTerrain(name, pStart, pEnd, (uint) rlevel, (uint) qual);
+        decomp.data = heights;
+
+        return decomp;
     }
 
     public static GameObject generateDecompData(decompTerrainData data) {
         // TODO: pass in data as a percent of max height, that way we can use shaders (since the data will be 0-1)?
         // look into alt ways of minimizing stored data in jp2/write own jp2 writer
-        int len = data.height * data.width;
+        int len = data.size.x * data.size.y;
         Vector3[] verts = new Vector3[len];
         for (int i = 0; i < len; i++) {
-            int x = i % 250;
-            int y = (i - x) / 250;
-            float px = (float) x / 250f;
-            float py = (float) y / 250f;
+            int x = i % data.size.x;
+            int y = (i - x) / data.size.x;
             geographic p = new geographic(
-                data.offset.lat + py * 15f,
-                data.offset.lon + px * 30f);
+                data.offset.lat + (float) (data.start.y + y * data.res) / data.fileLengthY * data.stepSizeGeoY,
+                data.offset.lon + (float) (data.start.x + x * data.res) / data.fileLengthX * data.stepSizeGeoX);
             
             position point = p.toCartesian(1737.1 - 32.767 + (float) data.data[i] / 1000f) / master.scale;
             verts[i] = (Vector3) point;
         }
 
+        int[] tris;
+        if (triangles.ContainsKey(data.size)) tris = triangles[data.size];
+        else {
+            Debug.LogWarning("Do not have pregenerated triangle array of size " + data.size.ToString() + ". Generating new triangle array of this size.");
+            tris = genTriangles(data.size.x, data.size.y);
+            triangles[data.size] = tris;
+        }
+
+        // TODO: pregenerate high resolution normal map!
         Mesh m = new Mesh();
         m.vertices = verts;
-        m.triangles = triangles;
+        m.triangles = tris;
+        m.name = data.offset.ToString();
         m.RecalculateNormals();
 
         GameObject go = GameObject.Instantiate(general.globalTerrainPrefab);
@@ -48,9 +86,17 @@ public static class globalMeshGenerator {
         return go;
     }
 
-    private static string formatLat(int value) => $"{Math.Abs(value)}{(value >= 0 ? 'n' : 's')}";
+    private static string format(int v, int c, bool useSuffix = true) {
+        string suffix = useSuffix ? (v < 0 ? "s" : "n") : "";
+        string av = Math.Abs(v).ToString();
+        int len = av.Length;
 
-    public static int[] genTriangles(int x, int y) {
+        if (v == 0) return new String('0', c) + suffix;
+        else if (len < c) return new String('0', c - len) + av + suffix;
+        else return av + suffix;
+    }
+
+    private static int[] genTriangles(int x, int y) {
         int[] trianglePreset = new int[x * y * 6];
         int tri = 0;
         int ver = 0;

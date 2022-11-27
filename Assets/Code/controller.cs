@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
-using System.Buffers;
-using UnityEditor;
 
 public class controller : MonoBehaviour {
     public Texture2D tex;
@@ -64,8 +61,13 @@ public class controller : MonoBehaviour {
         //    globalMeshGenerator.generateTile(3, a, new Vector3Int(250 * 32 - 1, 250 * 32 - 1, 32));
         //}
 
-        globalMeshGenerator.folder = "C:/Users/leozw/Desktop/ADC/global/out/";
-        globalMeshGenerator.generateDecompData(globalMeshGenerator.requestGlobalTerrain(new Vector2Int(-30, 30), new Vector2Int(0, 0), new Vector2Int(8000, 8000), 5, 3));
+        // /globalMeshGenerator.folder = "C:/Users/leozw/Desktop/ADC/global/out/";
+        //GameObject go1 = globalMeshGenerator.generateDecompData(globalMeshGenerator.requestGlobalTerrain(new Vector2Int(-30, 30), new Vector2Int(0, 0), new Vector2Int(8000, 8000), 5, 3, false));
+        //GameObject go2 = globalMeshGenerator.generateDecompData(globalMeshGenerator.requestGlobalTerrain(new Vector2Int(-30, 30), new Vector2Int(7840, 7840), new Vector2Int(15840, 15840), 5, 3, false));
+        //GameObject go3 = globalMeshGenerator.generateDecompData(globalMeshGenerator.requestGlobalTerrain(new Vector2Int(-30, 30), new Vector2Int(0, 8000), new Vector2Int(8000, 16000), 5, 3, false));
+        //GameObject go4 = globalMeshGenerator.generateDecompData(globalMeshGenerator.requestGlobalTerrain(new Vector2Int(-30, 30), new Vector2Int(8000, 0), new Vector2Int(16000, 8000), 5, 3, false));
+
+        //globalMeshGenerator.generateDecompData(globalMeshGenerator.requestGlobalTerrain(new Vector2Int(0, 0), new Vector2Int(0, 0), new Vector2Int(1600, 1600), 3, 3, true));
 
         master.onStateChange += terrain.onStateChange;
 
