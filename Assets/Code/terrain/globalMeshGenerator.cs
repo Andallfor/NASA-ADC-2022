@@ -29,7 +29,7 @@ public static class globalMeshGenerator {
         alreadyInit = true;
     }
 
-    private static int[] genTriangles(int x, int y) {
+    public static int[] genTriangles(int x, int y) {
         int[] trianglePreset = new int[x * y * 6];
         int tri = 0;
         int ver = 0;
@@ -52,7 +52,7 @@ public static class globalMeshGenerator {
     }
 
     public static async void generateTile(int layer, Vector2Int fileCoord, Vector3Int range, bool flush = false) {
-        if (!((range.z != 0) && ((range.z & (range.z - 1)) == 0))) throw new ArgumentException("Resolution must be a power of 2");
+        if (!((range.z != 0) && ((range.z % (range.z - 1)) == 0))) throw new ArgumentException("Resolution must be a power of 2");
 
         Stopwatch watch = new Stopwatch();
         watch.Start();
@@ -113,5 +113,9 @@ public static class globalMeshGenerator {
             watch.Stop();
             UnityEngine.Debug.Log($"(Total) {range}: layer {layer} and resolution {range.z} in {watch.ElapsedMilliseconds}ms");
         });
+    }
+
+    public static void generateTile(decompTerrainData data) {
+
     }
 }

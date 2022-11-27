@@ -5,12 +5,13 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using System.Buffers;
 
 public class controller : MonoBehaviour {
     public Texture2D tex;
     public void Update() {
         if (Input.GetKeyDown("a")) {
-            test();
+            //test();
         }
     }
 
@@ -61,6 +62,32 @@ public class controller : MonoBehaviour {
         //    globalMeshGenerator.generateTile(3, a, new Vector3Int(250 * 32 - 1, 0, 32));
         //    globalMeshGenerator.generateTile(3, a, new Vector3Int(250 * 32 - 1, 250 * 32 - 1, 32));
         //}
+
+        decompTerrainData d = openJpegWrapper.requestTerrain("C:/Users/leozw/Desktop/ADC/global/out/trn_1024_30n_45n_330_360.jp2", new Vector2Int(0, 0), new Vector2Int(8000, 8000), 5, 3);
+
+        int[] formatted = new int[d.height * d.width];
+        Buffer.BlockCopy(d.data, 0, formatted, 0, d.data.Length);
+
+        geographic offset = new geographic(30, -30);
+        Vector3[] points = new Vector3[d.height * d.width];
+        for (int i = 0; i < formatted.Length; i++) {
+            int x = i % 250;
+            int y = (i - x) / 250;
+            float px = (float) x / 250f;
+            float py = (float) y / 250f;
+            geographic p = new geographic(
+                offset.lat + py * 15f,
+                offset.lon + px * 30f);
+            
+            position point = p.toCartesian(1737.1 - 32.767 + (float) formatted[i] / 1000f) / master.scale;
+            points[i] = (Vector3) point;
+        }
+
+        Mesh m = new Mesh();
+        m.vertices = points;
+        m.triangles = globalMeshGenerator.genTriangles(250, 250);
+        GameObject go = GameObject.Instantiate(general.bodyPrefab);
+        go.GetComponent<MeshFilter>().mesh = m;
 
 
         master.onStateChange += terrain.onStateChange;

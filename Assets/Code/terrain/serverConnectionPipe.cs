@@ -7,8 +7,6 @@ using System.IO;
 using System;
 
 public class serverConnectionPipe {
-    
-
     public Task<globalMeshData> requestLunarTerrainPipe(int layer, Vector2Int fileCoord, Vector3Int range, bool flush) {
         string request = $"layer={layer}|area={fileCoord.x}_{fileCoord.y}|points={range.x}_{range.y}_{range.z}|flush={Convert.ToInt32(flush)}";
 
