@@ -13,6 +13,7 @@ public static class general {
     public static GameObject craterPrefab = Resources.Load("prefabs/crater") as GameObject;
     public static GameObject buttonPrefab = Resources.Load("prefabs/button") as GameObject;
     public static GameObject craterTerrainPrefab = Resources.Load("prefabs/craterTerrain") as GameObject;
+    public static GameObject globalTerrainPrefab = Resources.Load("prefabs/globalTerrain") as GameObject;
     #endregion
 
     #region MATERIALS

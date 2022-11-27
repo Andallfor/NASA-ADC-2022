@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 
 public static class openJpegWrapper {
-    public static decompTerrainData requestTerrain(string file, Vector2Int start, Vector2Int end, uint res, uint quality) {
+    public static decompTerrainData requestTerrain(string file, geographic offset, Vector2Int start, Vector2Int end, uint res, uint quality) {
         // TODO: add error checking
         // TODO: test across a lot of systems to ensure endianess is respected!
         IntPtr dparam = openjpeg_openjp2_opj_dparameters_t_new();
@@ -45,11 +45,15 @@ public static class openJpegWrapper {
                 System.Buffer.MemoryCopy((void*) openjpeg_openjp2_opj_image_comp_t_get_data(imgc), arrStart, len, len);
             }
         }
+
+        int[] formatted = new int[nrows * ncols];
+        Buffer.BlockCopy(data, 0, formatted, 0, data.Length);
         
         decompTerrainData d = new decompTerrainData();
         d.height = (int) nrows;
         d.width = (int) ncols;
-        d.data = data;
+        d.data = formatted;
+        d.offset = offset;
 
         return d;
     }
@@ -80,7 +84,7 @@ public static class openJpegWrapper {
 }
 
 public struct decompTerrainData {
-    public byte[] data;
+    public int[] data;
     public int height, width;
     public geographic offset;
 }
