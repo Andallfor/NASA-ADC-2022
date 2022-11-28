@@ -53,20 +53,7 @@ public struct position {
     public double distanceTo(position p) => Math.Sqrt(
         Math.Pow(x - p.x, 2) +
         Math.Pow(y - p.y, 2) +
-        Math.Pow(z - p.z, 2));
-
-    public static position cross(position v1, position v2)
-    {
-      return new position(
-      v1.y * v2.z - v1.y * v2.x,
-      v1.z * v2.x - v1.x * v2.z,
-      v1.x * v2.y - v1.y * v2.x);
-    }
-
-    public static double dot(position v1, position v2)
-    {
-      return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
-    }    
+        Math.Pow(z - p.z, 2));    
 
     /// <summary> Normalize vector to have a length of 1. </summary>
     public position normalize() {
@@ -87,6 +74,60 @@ public struct position {
         p1.x + ((p2.x - p1.x) * t),
         p1.y + ((p2.y - p1.y) * t),
         p1.z + ((p2.z - p1.z) * t));
+    
+    public static position cross(position v1, position v2) => new position(
+        v1.y * v2.z - v1.y * v2.x,
+        v1.z * v2.x - v1.x * v2.z,
+        v1.x * v2.y - v1.y * v2.x);
+
+    public static double dot(position v1, position v2) => v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+
+    // https://stackoverflow.com/questions/5883169/intersection-between-a-line-and-a-sphere
+    public static position[] lineSphereIntersection(position linePoint1, position linePoint2, position circleCenter, double radius) {
+        double cx = circleCenter.x;
+        double cy = circleCenter.y;
+        double cz = circleCenter.z;
+
+        double px = linePoint1.x;
+        double py = linePoint1.y;
+        double pz = linePoint1.z;
+
+        double vx = linePoint2.x - px;
+        double vy = linePoint2.y - py;
+        double vz = linePoint2.z - pz;
+
+        double A = vx * vx + vy * vy + vz * vz;
+        double B = 2.0 * (px * vx + py * vy + pz * vz - vx * cx - vy * cy - vz * cz);
+        double C = px * px - 2 * px * cx + cx * cx + py * py - 2 * py * cy + cy * cy +
+                   pz * pz - 2 * pz * cz + cz * cz - radius * radius;
+
+        // discriminant
+        double D = B * B - 4 * A * C;
+
+        if ( D < 0 ) return new position[0];
+
+        double t1 = ( -B - Math.Sqrt ( D ) ) / ( 2.0 * A );
+
+        position solution1 = new position(linePoint1.x * ( 1 - t1 ) + t1 * linePoint2.x,
+                                          linePoint1.y * ( 1 - t1 ) + t1 * linePoint2.y,
+                                          linePoint1.z * ( 1 - t1 ) + t1 * linePoint2.z );
+        if ( D == 0 ) return new position[1] {solution1};
+
+        double t2 = ( -B + Math.Sqrt( D ) ) / ( 2.0 * A );
+        position solution2 = new position(linePoint1.x * ( 1 - t2 ) + t2 * linePoint2.x,
+                                          linePoint1.y * ( 1 - t2 ) + t2 * linePoint2.y,
+                                          linePoint1.z * ( 1 - t2 ) + t2 * linePoint2.z );
+
+        // prefer a solution that's on the line segment itself
+
+        if ( Math.Abs( t1 - 0.5 ) < Math.Abs( t2 - 0.5 ) ) return new position[2] {solution1, solution2};
+        return new position[2] {solution2, solution1};
+    }
+
+    public static double distance(position p1, position p2) => Math.Sqrt(
+        Math.Pow(p1.x - p2.x, 2) +
+        Math.Pow(p1.y - p2.y, 2) +
+        Math.Pow(p1.z - p2.z, 2));
     #endregion
 
     #region OVERRIDE/OPERATORS

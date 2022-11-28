@@ -14,8 +14,8 @@ public class controller : MonoBehaviour {
     }
 
     private async void test() {
-        int bx = Mathf.Min(255, (int) Math.Floor(terrain.currentCrater.terrainData.bounds["size"][0] / 20.0));
-        int by = Mathf.Min(255, (int) Math.Floor(terrain.currentCrater.terrainData.bounds["size"][1] / 20.0));
+        int bx = Mathf.Min(255, (int) Math.Floor(craterTerrainController.currentCrater.terrainData.bounds["size"][0] / 20.0));
+        int by = Mathf.Min(255, (int) Math.Floor(craterTerrainController.currentCrater.terrainData.bounds["size"][1] / 20.0));
         tex = new Texture2D(bx, by);
         Color[] c = new Color[bx * by];
         Task<bool>[] tasks = new Task<bool>[bx * by];
@@ -52,33 +52,22 @@ public class controller : MonoBehaviour {
         //terrain.processRegion("faustini rim a", 20, 1);
         //terrain.processRegion("leibnitz beta plateau", 20, 1);
 
-        //globalMeshGenerator.initialize();
-        //List<Vector2Int> areas = new List<Vector2Int>() {new Vector2Int(15, 30), new Vector2Int(30, 30), /*new Vector2Int(15, 60), new Vector2Int(30, 60)*/};
-        //foreach (Vector2Int a in areas) {
-        //    globalMeshGenerator.generateTile(3, a, new Vector3Int(0, 0, 32));
-        //    globalMeshGenerator.generateTile(3, a, new Vector3Int(0, 250 * 32 - 1, 32));
-        //    globalMeshGenerator.generateTile(3, a, new Vector3Int(250 * 32 - 1, 0, 32));
-        //    globalMeshGenerator.generateTile(3, a, new Vector3Int(250 * 32 - 1, 250 * 32 - 1, 32));
-        //}
-
-        // /globalMeshGenerator.folder = "C:/Users/leozw/Desktop/ADC/global/out/";
+        globalMeshGenerator.folder = "C:/Users/leozw/Desktop/ADC/global/out/";
         //GameObject go1 = globalMeshGenerator.generateDecompData(globalMeshGenerator.requestGlobalTerrain(new Vector2Int(-30, 30), new Vector2Int(0, 0), new Vector2Int(8000, 8000), 5, 3, false));
         //GameObject go2 = globalMeshGenerator.generateDecompData(globalMeshGenerator.requestGlobalTerrain(new Vector2Int(-30, 30), new Vector2Int(7840, 7840), new Vector2Int(15840, 15840), 5, 3, false));
         //GameObject go3 = globalMeshGenerator.generateDecompData(globalMeshGenerator.requestGlobalTerrain(new Vector2Int(-30, 30), new Vector2Int(0, 8000), new Vector2Int(8000, 16000), 5, 3, false));
-        //GameObject go4 = globalMeshGenerator.generateDecompData(globalMeshGenerator.requestGlobalTerrain(new Vector2Int(-30, 30), new Vector2Int(8000, 0), new Vector2Int(16000, 8000), 5, 3, false));
+        //GameObject go4 = globalMeshGenerator.generateDecompData(globalMeshGenerator.requestGlobalTerrain("Luna", new Vector2Int(-30, 30), new Vector2Int(8000, 0), new Vector2Int(16000, 8000), 5, 3, false));
 
-        //globalMeshGenerator.generateDecompData(globalMeshGenerator.requestGlobalTerrain(new Vector2Int(0, 0), new Vector2Int(0, 0), new Vector2Int(1600, 1600), 3, 3, true));
-
-        master.onStateChange += terrain.onStateChange;
+        master.onStateChange += craterTerrainController.onStateChange;
 
         planet sun = new planet(
-            new bodyInfo("sun", 696340, new timeline(), bodyType.sun),
+            new bodyInfo("Sun", 696340, new timeline(), bodyType.sun),
             new bodyRepresentationInfo(general.defaultMat, false));
         planet earth = new planet(
-            new bodyInfo("earth", 6371, new timeline(1.494757194768592E+08, 1.684950075464667E-02, 4.160341414638201E-03, 2.840153557215478E+02, 1.818203397569767E+02, 2.704822621765425E+02, time.strDateToJulian("2022 Oct 8 00:00:00.0000"), 3.986004418e14), bodyType.planet),
+            new bodyInfo("Earth", 6371, new timeline(1.494757194768592E+08, 1.684950075464667E-02, 4.160341414638201E-03, 2.840153557215478E+02, 1.818203397569767E+02, 2.704822621765425E+02, time.strDateToJulian("2022 Oct 8 00:00:00.0000"), 3.986004418e14), bodyType.planet),
             new bodyRepresentationInfo(general.earthMat));
         planet moon = new planet(
-            new bodyInfo("moon", 1737.4, new timeline(3.864958215095060E+05, 4.538937397897071E-02, 2.745404561156122E+01, 3.005845860250088E+02, 7.757615787462679, 5.234116546697739E+01, 2459861.5, 3.9860E+7), bodyType.moon),
+            new bodyInfo("Luna", 1737.4, new timeline(3.864958215095060E+05, 4.538937397897071E-02, 2.745404561156122E+01, 3.005845860250088E+02, 7.757615787462679, 5.234116546697739E+01, 2459861.5, 3.9860E+7), bodyType.moon),
             new bodyRepresentationInfo(general.moonMat));
 
         crater haworth =                  new crater("Haworth",                    new geographic(-86.7515237574502, -22.7749958363969), moon, new terrainFilesInfo("haworth",                    new List<Vector2Int>() {new Vector2Int(20, 1)}));
@@ -100,9 +89,12 @@ public class controller : MonoBehaviour {
 
         master.referenceFrameBody = moon;
 
+        new globalTerrainController(moon);
+
         master.markInit();
 
         master.scale = master.scale; // update all planets scale
+        master.changeState(programStates.interplanetary);
 
         Coroutine mainClock = StartCoroutine(internalClock(3600, int.MaxValue, (tick) => {
             master.incrementTime(master.timestep);

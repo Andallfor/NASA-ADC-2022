@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 public class visibility : MonoBehaviour {
     private static Queue<visResponse> queue = new Queue<visResponse>();
     public static async Task<bool> getVisibility(int meshIndex, position worldPos, Vector3 heightOffset, int activeMeshNum = 0, bool drawDebug = false) {
-        GameObject go = terrain.activeMeshes[activeMeshNum];
+        GameObject go = craterTerrainController.activeMeshes[activeMeshNum];
 
         if (go.GetComponent<MeshCollider>() == null) go.AddComponent<MeshCollider>();
 

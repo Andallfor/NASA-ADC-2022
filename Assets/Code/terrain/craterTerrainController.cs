@@ -7,7 +7,7 @@ using B83.MeshTools;
 using System.Linq;
 using Newtonsoft.Json;
 
-public static class terrain {
+public static class craterTerrainController {
     public static List<GameObject> activeMeshes = new List<GameObject>();
     public static crater currentCrater;
     public static Dictionary<string, terrainFilesInfo> craterData = new Dictionary<string, terrainFilesInfo>();
@@ -111,7 +111,7 @@ public static class terrain {
             float diff = 1000f / (float) master.scale;
             go.transform.localScale *= diff;
 
-            terrain.registerMesh(go);
+            craterTerrainController.registerMesh(go);
         });
     }
 
@@ -192,7 +192,7 @@ public static class terrain {
     public static void onStateChange(object s, stateChangeEvent e) {
         if (e.newState == programStates.planetaryTerrain) { // setup
             master.scale = 4;
-            terrain.generate(currentCrater.terrainData, 0);
+            craterTerrainController.generate(currentCrater.terrainData, 0);
             master.onScaleChange += update;
 
             master.playerPosition = currentCrater.parent.rotateLocalGeo(currentCrater.geo, 10).swapAxis();

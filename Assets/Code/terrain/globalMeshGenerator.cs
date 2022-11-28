@@ -10,7 +10,7 @@ public static class globalMeshGenerator {
         {new Vector2Int(200, 200), genTriangles(200, 200)}};
     public static string folder;
 
-    public static decompTerrainData requestGlobalTerrain(Vector2Int fileStart, Vector2Int pStart, Vector2Int pEnd, int rlevel, int qual, bool isSmall) {
+    public static decompTerrainData requestGlobalTerrain(string subFolder, Vector2Int fileStart, Vector2Int pStart, Vector2Int pEnd, int rlevel, int qual, bool isSmall) {
         double x = fileStart.x;
         if (fileStart.x < 0) x += 360f;
 
@@ -23,10 +23,10 @@ public static class globalMeshGenerator {
         decomp.end = pEnd;
         decomp.isSmall = isSmall;
         if (isSmall) {
-            decomp.stepSizeGeoX = 90;
-            decomp.stepSizeGeoY = 45;
-            decomp.fileLengthX = 3200;
-            decomp.fileLengthY = 1600;
+            decomp.stepSizeGeoX = 60;
+            decomp.stepSizeGeoY = 60;
+            decomp.fileLengthX = 2000;
+            decomp.fileLengthY = 2000;
         } else {
             decomp.stepSizeGeoX = 30;
             decomp.stepSizeGeoY = 15;
@@ -39,7 +39,7 @@ public static class globalMeshGenerator {
         string ne = format(fileStart.y + (int) decomp.stepSizeGeoY, 2);
         string ss = format((int) x, 3, false);
         string se = format((int) x + (int) decomp.stepSizeGeoX, 3, false);
-        string name = Path.Combine(folder, prefix + $"trn_1024_{ns}_{ne}_{ss}_{se}.jp2");
+        string name = Path.Combine(folder, subFolder, prefix + $"trn_1024_{ns}_{ne}_{ss}_{se}.jp2");
 
         if (!File.Exists(name)) throw new ArgumentException("Unable to find specified file " + name);
 
@@ -62,7 +62,7 @@ public static class globalMeshGenerator {
                 data.offset.lat + (float) (data.start.y + y * data.res) / data.fileLengthY * data.stepSizeGeoY,
                 data.offset.lon + (float) (data.start.x + x * data.res) / data.fileLengthX * data.stepSizeGeoX);
             
-            position point = p.toCartesian(1737.1 - 32.767 + (float) data.data[i] / 1000f) / master.scale;
+            position point = p.toCartesian(1737.1 - 32.767 + (float) data.data[i] / 1000f).swapAxis() / master.scale;
             verts[i] = (Vector3) point;
         }
 
@@ -103,12 +103,12 @@ public static class globalMeshGenerator {
 
         for (int d = 0; d < y - 1; d++) {
             for (int i = 0; i < x - 1; i++) {
-                trianglePreset[tri + 5] = 0 + ver;
-                trianglePreset[tri + 4] = (x - 1) + 1 + ver;
-                trianglePreset[tri + 3] = ver + 1;
-                trianglePreset[tri + 2] = 0 + ver + 1;
+                trianglePreset[tri + 0] = 0 + ver;
                 trianglePreset[tri + 1] = (x - 1) + 1 + ver;
-                trianglePreset[tri + 0] = ver + (x - 1) + 2;
+                trianglePreset[tri + 2] = ver + 1;
+                trianglePreset[tri + 3] = 0 + ver + 1;
+                trianglePreset[tri + 4] = (x - 1) + 1 + ver;
+                trianglePreset[tri + 5] = ver + (x - 1) + 2;
                 ver++;
                 tri += 6;
             }
