@@ -5,7 +5,7 @@ using System.IO;
 using System;
 
 public static class globalMeshGenerator {
-    private static Dictionary<Vector2Int, int[]> triangles = new Dictionary<Vector2Int, int[]>() {
+    public static Dictionary<Vector2Int, int[]> triangles = new Dictionary<Vector2Int, int[]>() {
         {new Vector2Int(250, 250), genTriangles(250, 250)},
         {new Vector2Int(200, 200), genTriangles(200, 200)}};
     public static string folder;
@@ -25,13 +25,13 @@ public static class globalMeshGenerator {
         if (isSmall) {
             decomp.stepSizeGeoX = 60;
             decomp.stepSizeGeoY = 60;
-            decomp.fileLengthX = 2000;
-            decomp.fileLengthY = 2000;
+            decomp.fileLengthX = 1920;
+            decomp.fileLengthY = 1920;
         } else {
             decomp.stepSizeGeoX = 30;
             decomp.stepSizeGeoY = 15;
-            decomp.fileLengthX = 32000;
-            decomp.fileLengthY = 16000;
+            decomp.fileLengthX = 30720;
+            decomp.fileLengthY = 15360;
         }
 
         string prefix = isSmall ? "small_" : "";
@@ -50,14 +50,14 @@ public static class globalMeshGenerator {
         return decomp;
     }
 
-    public static GameObject generateDecompData(decompTerrainData data) {
+    public static Vector3[] generateDecompData(decompTerrainData data) {
         // TODO: pass in data as a percent of max height, that way we can use shaders (since the data will be 0-1)?
         // look into alt ways of minimizing stored data in jp2/write own jp2 writer
         int len = data.size.x * data.size.y;
         Vector3[] verts = new Vector3[len];
         for (int i = 0; i < len; i++) {
             int x = i % data.size.x;
-            int y = (i - x) / data.size.x;
+            int y = data.size.y - ((i - x) / data.size.x);
             geographic p = new geographic(
                 data.offset.lat + (float) (data.start.y + y * data.res) / data.fileLengthY * data.stepSizeGeoY,
                 data.offset.lon + (float) (data.start.x + x * data.res) / data.fileLengthX * data.stepSizeGeoX);
@@ -74,16 +74,7 @@ public static class globalMeshGenerator {
             triangles[data.size] = tris;
         }
 
-        // TODO: pregenerate high resolution normal map!
-        Mesh m = new Mesh();
-        m.vertices = verts;
-        m.triangles = tris;
-        m.name = data.offset.ToString();
-        m.RecalculateNormals();
-
-        GameObject go = GameObject.Instantiate(general.globalTerrainPrefab);
-        go.GetComponent<MeshFilter>().mesh = m;
-        return go;
+        return verts;
     }
 
     private static string format(int v, int c, bool useSuffix = true) {
@@ -103,12 +94,12 @@ public static class globalMeshGenerator {
 
         for (int d = 0; d < y - 1; d++) {
             for (int i = 0; i < x - 1; i++) {
-                trianglePreset[tri + 0] = 0 + ver;
-                trianglePreset[tri + 1] = (x - 1) + 1 + ver;
-                trianglePreset[tri + 2] = ver + 1;
-                trianglePreset[tri + 3] = 0 + ver + 1;
+                trianglePreset[tri + 5] = 0 + ver;
                 trianglePreset[tri + 4] = (x - 1) + 1 + ver;
-                trianglePreset[tri + 5] = ver + (x - 1) + 2;
+                trianglePreset[tri + 3] = ver + 1;
+                trianglePreset[tri + 2] = 0 + ver + 1;
+                trianglePreset[tri + 1] = (x - 1) + 1 + ver;
+                trianglePreset[tri + 0] = ver + (x - 1) + 2;
                 ver++;
                 tri += 6;
             }

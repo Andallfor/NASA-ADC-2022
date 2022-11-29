@@ -83,6 +83,11 @@ public class controller : MonoBehaviour {
         crater malapertMassif =           new crater("Malapert Massif",            new geographic(-85.9898087775699, -0.23578026342289), moon, new terrainFilesInfo("malapert massif",            new List<Vector2Int>() {new Vector2Int(20, 1)}));
         crater nobileRim1 =               new crater("Nobile Rim 1",               new geographic(-85.4341491794868, 37.3666165277427),  moon, new terrainFilesInfo("nobile rim 1",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
         crater nobileRim2 =               new crater("Nobile Rim 2",               new geographic(-83.9510469034538, 58.8220823262493),  moon, new terrainFilesInfo("nobile rim 2",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater mareCrisium =               new crater("mareCrisium",               new geographic(17, 59.1),  moon, new terrainFilesInfo("nobile rim 2",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater mareFecunditatis =               new crater("mareFecunditatis",               new geographic(-7.8, 51.3),  moon, new terrainFilesInfo("nobile rim 2",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater mareTranquillitatis =               new crater("mareTranquillitatis",               new geographic(8.5, 31.4),  moon, new terrainFilesInfo("nobile rim 2",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater kepler =               new crater("kepler",               new geographic(8.1, -38.0),  moon, new terrainFilesInfo("nobile rim 2",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater tycho =               new crater("tucho",               new geographic(-43.31, -11.36),  moon, new terrainFilesInfo("nobile rim 2",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
 
         body.addFamilyNode(sun, earth);
         body.addFamilyNode(earth, moon);

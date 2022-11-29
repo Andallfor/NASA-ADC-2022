@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 public class globalTerrainController {
     private planet parent;
     private GameObject movementDetector;
     private Vector3 lastDetectorPos = Vector3.zero;
     private HashSet<geographic> currentDesiredMeshes = new HashSet<geographic>();
-    private Dictionary<geographic, GameObject> aliveMeshes = new Dictionary<geographic, GameObject>();
+    private Dictionary<geographic, globalTerrainInstance> aliveMeshes = new Dictionary<geographic, globalTerrainInstance>();
     private List<Vector2> directions = new List<Vector2>() {
         new Vector2(-1, 1),  new Vector2(0, 1),  new Vector2(1, 1),
         new Vector2(-1, 0),                      new Vector2(1, 0),
@@ -44,8 +46,7 @@ public class globalTerrainController {
 
         HashSet<geographic> current = new HashSet<geographic>(currentDesiredMeshes); // toKill
         HashSet<geographic> desired = new HashSet<geographic>(target); // toGen
-        HashSet<geographic> ignore = new HashSet<geographic>();
-        ignore = new HashSet<geographic>(current.Intersect(desired).ToList());
+        HashSet<geographic> ignore = new HashSet<geographic>(current.Intersect(desired).ToList());
         current.SymmetricExceptWith(ignore);
         desired.SymmetricExceptWith(ignore);
 
@@ -53,21 +54,16 @@ public class globalTerrainController {
 
         // kill
         foreach (geographic g in current) {
-            GameObject.Destroy(aliveMeshes[g]);
+            aliveMeshes[g].requestKill();
             aliveMeshes.Remove(g);
         }
         
         // create new meshes
         foreach (geographic g in desired) {
-            decompTerrainData d = globalMeshGenerator.requestGlobalTerrain(
-                parent.name,
-                new Vector2Int((int) g.lon, (int) g.lat),
-                new Vector2Int(0, 0),
-                new Vector2Int(2000, 2000),
-                3, 3, true);
-
-            GameObject go = globalMeshGenerator.generateDecompData(d);
-            aliveMeshes[g] = go;
+            globalTerrainInstance inst = new globalTerrainInstance(
+                parent.name, new Vector2Int((int) g.lon, (int) g.lat), new Vector2Int(0, 0), new Vector2Int(2000, 2000), 3, 3, true, parent.representation);
+            inst.generate();
+            aliveMeshes[g] = inst;
         }
     }
 
@@ -111,14 +107,69 @@ public class globalTerrainController {
         Queue<geographic> frontier = new Queue<geographic>(getNearbyTiles(start, step));
         HashSet<geographic> visited = new HashSet<geographic>() {start};
         HashSet<geographic> visible = new HashSet<geographic>();
+
+        bool allOffscreen = false;
+        while (!allOffscreen) {
+            allOffscreen = true;
+            HashSet<geographic> nextFrontier = new HashSet<geographic>();
+            while (frontier.Count != 0) {
+                geographic ll = frontier.Dequeue();
+
+                geographic[] corners = new geographic[4] { // ll, tl, tr, lr
+                    ll, ll + new geographic(step.lat, 0),
+                    ll + new geographic(step.lat, step.lon), ll + new geographic(0, step.lon)};
+
+                bool anyVisible = false;
+                for (int i = 0; i < 4; i++) {
+                    Vector3 v = parent.localGeoToUnityPos(corners[i], 0);
+                    position[] ints = position.lineSphereIntersection(v, general.camera.transform.position, Vector3.zero, scaledRadius);
+                    
+                    if (ints.Length == 1 || ints.Length == 0) {
+                        // tangent line, must be visible
+                        // idk what happens what the length is 0
+                        anyVisible = true;
+                        break;
+                    }
+
+                    // check to see which point v is closer to
+                    // 1st is the point closest to the camera
+                    position[] sorted = ints.OrderBy(x => x.distanceTo(general.camera.transform.position)).ToArray();
+                    if (position.distance(sorted[0], v) < position.distance(sorted[1], v)) {
+                        anyVisible = true;
+                        break;
+                    }
+
+                    // TODO: check if box formed by corners overlaps camera
+                }
+
+                //if (!anyVisible) continue;
+                
+                allOffscreen = false;
+
+                foreach (Vector2 dir in directions) {
+                    geographic next = ll + new geographic(dir.x * step.lat, dir.y * step.lon);
+                    if (!visited.Contains(next) && !nextFrontier.Contains(next)) {
+                        visited.Add(next);
+                        nextFrontier.Add(next);
+                    }
+                }
+            }
+
+            frontier = new Queue<geographic>(nextFrontier);
+        }
+
+        /*
         while (frontier.Count != 0) {
             // check and replace all of toCheck at once rather than individually
             // TODO: use this to maybe (?) determine dynamically resolutions later
             //      allows one to say a tile is "more visible" depending on iteration
+
+            // TODO: rewrite using z position
             HashSet<geographic> nextFrontier = new HashSet<geographic>();
             while (frontier.Count != 0) {
                 // check if they are even possible to see (not on the other side of the planet)
                 geographic ll = frontier.Dequeue();
+                Debug.DrawLine(Vector3.zero, parent.localGeoToUnityPos(ll + new geographic(30, 30), 0), Color.red, 5);
                 visited.Add(ll);
                 geographic[] corners = new geographic[4] { // ll, tl, tr, lr
                     ll, ll + new geographic(step.lat, 0),
@@ -149,6 +200,7 @@ public class globalTerrainController {
 
                 // update queue
                 if (anyVisible) {
+                    // TODO: maybe problem is here?
                     HashSet<geographic> proposed = getNearbyTiles(ll, step);
                     proposed.ExceptWith(visited);
                     nextFrontier.Concat(proposed);
@@ -157,10 +209,10 @@ public class globalTerrainController {
                 }
             }
 
-            frontier.Concat(nextFrontier);
-        }
+            frontier = new Queue<geographic>(nextFrontier);
+        }*/
 
-        return visible;
+        return visited;
     }
 
     private HashSet<geographic> getNearbyTiles(geographic start, geographic step) {
@@ -175,6 +227,78 @@ public class globalTerrainController {
     }
 
     private static Vector2 vec3To2(Vector3 v) => new Vector2(v.x, v.y);
+}
+
+public class globalTerrainInstance {
+    private CancellationTokenSource token;
+    public bool currentlyRunning {get; private set;} = false;
+    public bool exists {get; private set;} = true;
+    private GameObject go, parent;
+    private Vector2Int point, start, end;
+    private int rlevel, qual;
+    private string subFolder;
+    private bool isSmall;
+
+    public globalTerrainInstance(string subFolder, Vector2Int point, Vector2Int start, Vector2Int end, int rlevel, int qual, bool isSmall, GameObject parent) {
+        token = new CancellationTokenSource();
+        this.subFolder = subFolder;
+        this.point = point;
+        this.start = start;
+        this.end = end;
+        this.rlevel = rlevel;
+        this.qual = qual;
+        this.isSmall = isSmall;
+        this.parent = parent;
+    }
+
+    public Task generate() {
+        if (!exists) return null;
+        if (currentlyRunning) {
+            Debug.LogWarning("Trying to generate mesh that's currently generating.");
+            return null;
+        }
+        if (go != null) {
+            Debug.LogWarning("Somehow GameObject exists despite not being recognized as so. This should not happen!");
+            return null;
+        }
+
+        currentlyRunning = true;
+
+        Task t = Task.Run(() => {
+            // do not question the spam
+            if (token.IsCancellationRequested) return;
+            decompTerrainData d = globalMeshGenerator.requestGlobalTerrain(subFolder, point, start, end, rlevel, qual, isSmall);
+            if (token.IsCancellationRequested) return;
+            Vector3[] verts = globalMeshGenerator.generateDecompData(d);
+            if (token.IsCancellationRequested) return;
+
+            UnityMainThreadDispatcher.Instance().Enqueue(() => {
+                if (token.IsCancellationRequested) return;        
+                // TODO: pregenerate high resolution normal map!
+                Mesh m = new Mesh();
+                m.vertices = verts;
+                m.triangles = globalMeshGenerator.triangles[d.size];;
+                m.name = d.offset.ToString();
+                m.RecalculateNormals();
+
+                go = GameObject.Instantiate(general.globalTerrainPrefab);
+                go.GetComponent<MeshFilter>().mesh = m;
+                go.transform.parent = parent.transform;
+                go.name = d.offset.ToString();
+            });
+        });
+
+        return t;
+    }
+
+    public void requestKill() {
+        if (!exists) return;
+        if (go != null) {
+            GameObject.Destroy(go.GetComponent<MeshFilter>().sharedMesh);
+            GameObject.Destroy(go);
+        }
+        token.Cancel();
+    }
 }
 
 [Flags] internal enum corner : int {
