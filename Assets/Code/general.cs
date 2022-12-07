@@ -21,6 +21,7 @@ public static class general {
     public static Material defaultMat = Resources.Load("materials/default") as Material;
     public static Material earthMat = Resources.Load("materials/earth") as Material;
     public static Material moonMat = Resources.Load("materials/moon") as Material;
+    public static Material globalTerrainMat = Resources.Load("materials/globalTerrain") as Material;
     #endregion
 
     #region OBJECTS IN SCENE
@@ -32,7 +33,6 @@ public static class general {
     public static Canvas canvas = GameObject.FindGameObjectWithTag("canvas").GetComponent<Canvas>();
     /// <summary> The main camera in the scene. Use this instead of Camera.main, as it is much more efficient. </summary>
     public static Camera camera = Camera.main;
-    public static Light sunlight = GameObject.FindGameObjectWithTag("light/sunlight").GetComponent<Light>();
     #endregion
 
     #region TERRAIN

@@ -5,7 +5,7 @@ using System.IO;
 using System;
 
 public static class globalMeshGenerator {
-    public static Dictionary<Vector2Int, int[]> triangles = new Dictionary<Vector2Int, int[]>() {
+    private static Dictionary<Vector2Int, int[]> triangles = new Dictionary<Vector2Int, int[]>() {
         {new Vector2Int(250, 250), genTriangles(250, 250)},
         {new Vector2Int(200, 200), genTriangles(200, 200)}};
     public static string folder;
@@ -50,20 +50,25 @@ public static class globalMeshGenerator {
         return decomp;
     }
 
-    public static Vector3[] generateDecompData(decompTerrainData data) {
+    public static decompMeshData generateDecompData(decompTerrainData data) {
         // TODO: pass in data as a percent of max height, that way we can use shaders (since the data will be 0-1)?
         // look into alt ways of minimizing stored data in jp2/write own jp2 writer
         int len = data.size.x * data.size.y;
         Vector3[] verts = new Vector3[len];
+        Vector2[] uvs = new Vector2[len];
         for (int i = 0; i < len; i++) {
             int x = i % data.size.x;
             int y = data.size.y - ((i - x) / data.size.x);
             geographic p = new geographic(
                 data.offset.lat + (float) (data.start.y + y * data.res) / data.fileLengthY * data.stepSizeGeoY,
                 data.offset.lon + (float) (data.start.x + x * data.res) / data.fileLengthX * data.stepSizeGeoX);
-            
+
             position point = p.toCartesian(1737.1 - 32.767 + (float) data.data[i] / 1000f).swapAxis() / master.scale;
             verts[i] = (Vector3) point;
+
+            uvs[i] = new Vector2(
+                (float) x / (float) data.size.x,
+                (float) (data.size.y - y) / (float) data.size.y);
         }
 
         int[] tris;
@@ -74,7 +79,11 @@ public static class globalMeshGenerator {
             triangles[data.size] = tris;
         }
 
-        return verts;
+        decompMeshData d = new decompMeshData();
+        d.verts = verts;
+        d.tris = tris;
+        d.uvs = uvs;
+        return d;
     }
 
     private static string format(int v, int c, bool useSuffix = true) {
@@ -108,4 +117,10 @@ public static class globalMeshGenerator {
 
         return trianglePreset;
     }
+}
+
+public struct decompMeshData {
+    public Vector3[] verts;
+    public int[] tris;
+    public Vector2[] uvs;
 }

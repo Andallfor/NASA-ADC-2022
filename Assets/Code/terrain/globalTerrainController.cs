@@ -5,6 +5,8 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.IO;
+using UnityEditor;
 
 public class globalTerrainController {
     private planet parent;
@@ -17,13 +19,18 @@ public class globalTerrainController {
         new Vector2(-1, 0),                      new Vector2(1, 0),
         new Vector2(-1, -1), new Vector2(0, -1), new Vector2(1, -1)};
 
-    public globalTerrainController(planet parent) {
+    public globalTerrainController(planet parent, bool loadNormalMaps = false) {
+        if (globalMeshGenerator.folder != "" || !Directory.Exists(globalMeshGenerator.folder)) {
+            throw new FileNotFoundException("Could not find globalMeshGenerator.folder! It is currently " + globalMeshGenerator.folder);
+        }
+
         this.parent = parent;
         master.onStateChange += onStateChange;
 
         movementDetector = GameObject.Instantiate(general.defaultPrefab, parent.representation.gameObject.transform);
         movementDetector.transform.position = Vector3.one;
         movementDetector.GetComponent<MeshRenderer>().enabled = false;
+        parent.representation.GetComponent<MeshRenderer>().enabled = false;
     }
 
     public void onStateChange(object s, stateChangeEvent e) {
@@ -62,7 +69,7 @@ public class globalTerrainController {
         foreach (geographic g in desired) {
             globalTerrainInstance inst = new globalTerrainInstance(
                 parent.name, new Vector2Int((int) g.lon, (int) g.lat), new Vector2Int(0, 0), new Vector2Int(2000, 2000), 3, 3, true, parent.representation);
-            inst.generate();
+            inst.generate(true, false, false);
             aliveMeshes[g] = inst;
         }
     }
@@ -101,7 +108,7 @@ public class globalTerrainController {
         geographic step = new geographic(60, 60);
         geographic start = new geographic(
             intersectionGeo.lat - intersectionGeo.lat % step.lat + 30, // bc it is not centered on 0 but +30 (due to step size)
-            intersectionGeo.lon - intersectionGeo.lon % step.lon);
+            intersectionGeo.lon - intersectionGeo.lon % step.lon, true);
 
         // start flood fill alg
         Queue<geographic> frontier = new Queue<geographic>(getNearbyTiles(start, step));
@@ -147,7 +154,7 @@ public class globalTerrainController {
                 allOffscreen = false;
 
                 foreach (Vector2 dir in directions) {
-                    geographic next = ll + new geographic(dir.x * step.lat, dir.y * step.lon);
+                    geographic next = new geographic(ll.lat + dir.x * step.lat, ll.lon + dir.y * step.lon, true);
                     if (!visited.Contains(next) && !nextFrontier.Contains(next)) {
                         visited.Add(next);
                         nextFrontier.Add(next);
@@ -157,60 +164,6 @@ public class globalTerrainController {
 
             frontier = new Queue<geographic>(nextFrontier);
         }
-
-        /*
-        while (frontier.Count != 0) {
-            // check and replace all of toCheck at once rather than individually
-            // TODO: use this to maybe (?) determine dynamically resolutions later
-            //      allows one to say a tile is "more visible" depending on iteration
-
-            // TODO: rewrite using z position
-            HashSet<geographic> nextFrontier = new HashSet<geographic>();
-            while (frontier.Count != 0) {
-                // check if they are even possible to see (not on the other side of the planet)
-                geographic ll = frontier.Dequeue();
-                Debug.DrawLine(Vector3.zero, parent.localGeoToUnityPos(ll + new geographic(30, 30), 0), Color.red, 5);
-                visited.Add(ll);
-                geographic[] corners = new geographic[4] { // ll, tl, tr, lr
-                    ll, ll + new geographic(step.lat, 0),
-                    ll + new geographic(step.lat, step.lon), ll + new geographic(0, step.lon)};
-
-                bool anyVisible = false;
-                for (int i = 0; i < 4; i++) {
-                    Vector3 v = parent.localGeoToUnityPos(corners[i], 0);
-                    position[] ints = position.lineSphereIntersection(v, general.camera.transform.position, Vector3.zero, scaledRadius);
-                    
-                    if (ints.Length == 1 || ints.Length == 0) {
-                        // tangent line, must be visible
-                        // idk what happens what the length is 0
-                        anyVisible = true;
-                        break;
-                    }
-
-                    // check to see which point v is closer to
-                    // 1st is the point closest to the camera
-                    position[] sorted = ints.OrderBy(x => x.distanceTo(general.camera.transform.position)).ToArray();
-                    if (position.distance(sorted[0], v) < position.distance(sorted[1], v)) {
-                        anyVisible = true;
-                        break;
-                    }
-
-                    // TODO: check if box formed by corners overlaps camera
-                }
-
-                // update queue
-                if (anyVisible) {
-                    // TODO: maybe problem is here?
-                    HashSet<geographic> proposed = getNearbyTiles(ll, step);
-                    proposed.ExceptWith(visited);
-                    nextFrontier.Concat(proposed);
-
-                    visible.Add(ll);
-                }
-            }
-
-            frontier = new Queue<geographic>(nextFrontier);
-        }*/
 
         return visited;
     }
@@ -226,7 +179,51 @@ public class globalTerrainController {
         return output;
     }
 
-    private static Vector2 vec3To2(Vector3 v) => new Vector2(v.x, v.y);
+    public static async Task generateNormalMaps(planet parent) {
+        int res = 3;
+        int pw = (int) Math.Pow(2, res);
+        int length = (int) (1024 / pw);
+        //Texture2DArray texArr = new Texture2DArray(length * 60, length * 60, (360 / 60) * (180 / 60), TextureFormat.RGBA32, 0, true);
+        for (int sx = -180; sx < 180; sx += 60) {
+            for (int sy = -90; sy < 90; sy += 60) {
+                Vector2Int start = new Vector2Int(sx, sy);
+                Dictionary<Vector2Int, globalTerrainInstance> map = new Dictionary<Vector2Int, globalTerrainInstance>();
+                List<Task> tasks = new List<Task>();
+
+                for (int x = start.x; x < start.x + 60; x += 30) {
+                    for (int y = start.y; y < start.y + 60; y += 15) {
+                        var a = new globalTerrainInstance("Luna", new Vector2Int(x, y), new Vector2Int(0, 0), new Vector2Int(16000, 16000), res, 0, false, parent.representation);
+                        var b = new globalTerrainInstance("Luna", new Vector2Int(x, y), new Vector2Int(15360, 0), new Vector2Int(15360 + 16000, 16000), res, 0, false, parent.representation);
+
+                        int aX = (int) (x - start.x) * length;
+                        int aY = (int) (start.y + 45 - y) * length;
+                        map[new Vector2Int(aX, aY)] = a;
+                        map[new Vector2Int(aX + length * 15, aY)] = b;
+                        tasks.Add(a.generate(false, true, true));
+                        tasks.Add(b.generate(false, true, true));
+                    }
+                }
+
+                await Task.WhenAll(tasks);
+
+                await Task.Delay(2000);
+
+                Texture2D tex = new Texture2D(length * 60, length * 60);
+                tex.hideFlags = HideFlags.HideAndDontSave;
+                foreach (var kvp in map) {
+                    tex.SetPixels32(kvp.Key.x, kvp.Key.y, length * 15, length * 15, kvp.Value.generateNormalMap(0, 0, 15360 / pw, 15360 / pw, 16000 / pw), 0);
+                    kvp.Value.requestKill();
+                }
+                tex.Apply();
+
+                int index = ((sx + 180) / 60) * (180 / 60) + ((sy + 90) / 60);
+
+                byte[] data = tex.EncodeToPNG();
+                File.WriteAllBytes("C:/Users/leozw/Desktop/ADC/global/" + index.ToString() + ".png", data);
+                GameObject.Destroy(tex);
+            }
+        }
+    }
 }
 
 public class globalTerrainInstance {
@@ -238,6 +235,7 @@ public class globalTerrainInstance {
     private int rlevel, qual;
     private string subFolder;
     private bool isSmall;
+    private Mesh m;
 
     public globalTerrainInstance(string subFolder, Vector2Int point, Vector2Int start, Vector2Int end, int rlevel, int qual, bool isSmall, GameObject parent) {
         token = new CancellationTokenSource();
@@ -251,7 +249,7 @@ public class globalTerrainInstance {
         this.parent = parent;
     }
 
-    public Task generate() {
+    public Task generate(bool createGo = true, bool generateNormals = false, bool is32Bit = false) {
         if (!exists) return null;
         if (currentlyRunning) {
             Debug.LogWarning("Trying to generate mesh that's currently generating.");
@@ -265,30 +263,58 @@ public class globalTerrainInstance {
         currentlyRunning = true;
 
         Task t = Task.Run(() => {
+            try {
             // do not question the spam
             if (token.IsCancellationRequested) return;
             decompTerrainData d = globalMeshGenerator.requestGlobalTerrain(subFolder, point, start, end, rlevel, qual, isSmall);
             if (token.IsCancellationRequested) return;
-            Vector3[] verts = globalMeshGenerator.generateDecompData(d);
+            decompMeshData md = globalMeshGenerator.generateDecompData(d);
             if (token.IsCancellationRequested) return;
 
             UnityMainThreadDispatcher.Instance().Enqueue(() => {
-                if (token.IsCancellationRequested) return;        
-                // TODO: pregenerate high resolution normal map!
-                Mesh m = new Mesh();
-                m.vertices = verts;
-                m.triangles = globalMeshGenerator.triangles[d.size];;
+                if (token.IsCancellationRequested) return;      
+                m = new Mesh();
+                if (is32Bit) m.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+                m.vertices = md.verts;
+                m.uv = md.uvs;
+                m.triangles = md.tris;
                 m.name = d.offset.ToString();
-                m.RecalculateNormals();
 
-                go = GameObject.Instantiate(general.globalTerrainPrefab);
-                go.GetComponent<MeshFilter>().mesh = m;
-                go.transform.parent = parent.transform;
-                go.name = d.offset.ToString();
+                if (generateNormals) m.RecalculateNormals();
+
+                if (createGo) {
+                    go = GameObject.Instantiate(general.globalTerrainPrefab);
+                    go.GetComponent<MeshFilter>().mesh = m;
+                    go.transform.parent = parent.transform;
+                    go.name = d.offset.ToString();
+                }
             });
+            }
+            catch (Exception e) {
+                Debug.Log(e);
+            }
         });
 
         return t;
+    }
+
+    public Color32[] generateNormalMap(int sx, int sy, int wx, int wy, int tx) {
+        List<Vector3> normals = new List<Vector3>();
+        m.GetNormals(normals);
+        Color32[] cs = new Color32[wx * wy];
+        for (int y = sy; y < sy + wy; y++) {
+            for (int x = sx; x < sx + wx; x++) {
+                int indexN = y * tx + x;
+                int indexC = (y - sy) * wy + x - sx;
+                Vector3 c = normals[indexN];
+                cs[indexC].r = (byte) (255f * (c.x + 1f) / 2f);
+                cs[indexC].g = (byte) (255f * (c.y + 1f) / 2f);
+                cs[indexC].b = (byte) (255f * (c.z + 1f) / 2f);
+                cs[indexC].a = 255;
+            }
+        }
+
+        return cs;
     }
 
     public void requestKill() {

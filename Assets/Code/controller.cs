@@ -37,6 +37,8 @@ public class controller : MonoBehaviour {
         File.WriteAllBytes("C:/Users/leozw/Desktop/out.png", data);
     }
 
+    public static planet moon;
+
     void Awake() {
         //terrain.processRegion("haworth", 20, 1); // TODO: 20 actually isnt big enough, some values are still cut off
         //terrain.processRegion("nobile rim 1", 20, 1);
@@ -53,10 +55,6 @@ public class controller : MonoBehaviour {
         //terrain.processRegion("leibnitz beta plateau", 20, 1);
 
         globalMeshGenerator.folder = "C:/Users/leozw/Desktop/ADC/global/out/";
-        //GameObject go1 = globalMeshGenerator.generateDecompData(globalMeshGenerator.requestGlobalTerrain(new Vector2Int(-30, 30), new Vector2Int(0, 0), new Vector2Int(8000, 8000), 5, 3, false));
-        //GameObject go2 = globalMeshGenerator.generateDecompData(globalMeshGenerator.requestGlobalTerrain(new Vector2Int(-30, 30), new Vector2Int(7840, 7840), new Vector2Int(15840, 15840), 5, 3, false));
-        //GameObject go3 = globalMeshGenerator.generateDecompData(globalMeshGenerator.requestGlobalTerrain(new Vector2Int(-30, 30), new Vector2Int(0, 8000), new Vector2Int(8000, 16000), 5, 3, false));
-        //GameObject go4 = globalMeshGenerator.generateDecompData(globalMeshGenerator.requestGlobalTerrain("Luna", new Vector2Int(-30, 30), new Vector2Int(8000, 0), new Vector2Int(16000, 8000), 5, 3, false));
 
         master.onStateChange += craterTerrainController.onStateChange;
 
@@ -66,7 +64,7 @@ public class controller : MonoBehaviour {
         planet earth = new planet(
             new bodyInfo("Earth", 6371, new timeline(1.494757194768592E+08, 1.684950075464667E-02, 4.160341414638201E-03, 2.840153557215478E+02, 1.818203397569767E+02, 2.704822621765425E+02, time.strDateToJulian("2022 Oct 8 00:00:00.0000"), 3.986004418e14), bodyType.planet),
             new bodyRepresentationInfo(general.earthMat));
-        planet moon = new planet(
+        moon = new planet(
             new bodyInfo("Luna", 1737.4, new timeline(3.864958215095060E+05, 4.538937397897071E-02, 2.745404561156122E+01, 3.005845860250088E+02, 7.757615787462679, 5.234116546697739E+01, 2459861.5, 3.9860E+7), bodyType.moon),
             new bodyRepresentationInfo(general.moonMat));
 
@@ -87,14 +85,14 @@ public class controller : MonoBehaviour {
         crater mareFecunditatis =               new crater("mareFecunditatis",               new geographic(-7.8, 51.3),  moon, new terrainFilesInfo("nobile rim 2",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
         crater mareTranquillitatis =               new crater("mareTranquillitatis",               new geographic(8.5, 31.4),  moon, new terrainFilesInfo("nobile rim 2",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
         crater kepler =               new crater("kepler",               new geographic(8.1, -38.0),  moon, new terrainFilesInfo("nobile rim 2",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
-        crater tycho =               new crater("tucho",               new geographic(-43.31, -11.36),  moon, new terrainFilesInfo("nobile rim 2",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater tycho =               new crater("tycho",               new geographic(-43.31, -11.36),  moon, new terrainFilesInfo("nobile rim 2",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
 
         body.addFamilyNode(sun, earth);
         body.addFamilyNode(earth, moon);
 
         master.referenceFrameBody = moon;
 
-        new globalTerrainController(moon);
+        new globalTerrainController(moon, true);
 
         master.markInit();
 
