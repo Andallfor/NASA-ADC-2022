@@ -20,7 +20,7 @@ public class globalTerrainController {
         new Vector2(-1, -1), new Vector2(0, -1), new Vector2(1, -1)};
 
     public globalTerrainController(planet parent, bool loadNormalMaps = false) {
-        if (globalMeshGenerator.folder != "" || !Directory.Exists(globalMeshGenerator.folder)) {
+        if (globalMeshGenerator.folder == "" || !Directory.Exists(globalMeshGenerator.folder)) {
             throw new FileNotFoundException("Could not find globalMeshGenerator.folder! It is currently " + globalMeshGenerator.folder);
         }
 
