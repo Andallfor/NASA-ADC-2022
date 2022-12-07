@@ -3,20 +3,19 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 public class controller : MonoBehaviour {
     public Texture2D tex;
     public void Update() {
         if (Input.GetKeyDown("a")) {
-            test();
+            //test();
         }
     }
 
     private async void test() {
-        int bx = Mathf.Min(255, (int) Math.Floor(terrain.currentCrater.terrainData.bounds["size"][0] / 20.0));
-        int by = Mathf.Min(255, (int) Math.Floor(terrain.currentCrater.terrainData.bounds["size"][1] / 20.0));
+        int bx = Mathf.Min(255, (int) Math.Floor(craterTerrainController.currentCrater.terrainData.bounds["size"][0] / 20.0));
+        int by = Mathf.Min(255, (int) Math.Floor(craterTerrainController.currentCrater.terrainData.bounds["size"][1] / 20.0));
         tex = new Texture2D(bx, by);
         Color[] c = new Color[bx * by];
         Task<bool>[] tasks = new Task<bool>[bx * by];
@@ -38,6 +37,8 @@ public class controller : MonoBehaviour {
         File.WriteAllBytes("C:/Users/leozw/Desktop/out.png", data);
     }
 
+    public static planet moon;
+
     void Awake() {
         //terrain.processRegion("haworth", 20, 1); // TODO: 20 actually isnt big enough, some values are still cut off
         //terrain.processRegion("nobile rim 1", 20, 1);
@@ -53,26 +54,18 @@ public class controller : MonoBehaviour {
         //terrain.processRegion("faustini rim a", 20, 1);
         //terrain.processRegion("leibnitz beta plateau", 20, 1);
 
-        //globalMeshGenerator.initialize();
-        //List<Vector2Int> areas = new List<Vector2Int>() {new Vector2Int(15, 30), new Vector2Int(30, 30), /*new Vector2Int(15, 60), new Vector2Int(30, 60)*/};
-        //foreach (Vector2Int a in areas) {
-        //    globalMeshGenerator.generateTile(3, a, new Vector3Int(0, 0, 32));
-        //    globalMeshGenerator.generateTile(3, a, new Vector3Int(0, 250 * 32 - 1, 32));
-        //    globalMeshGenerator.generateTile(3, a, new Vector3Int(250 * 32 - 1, 0, 32));
-        //    globalMeshGenerator.generateTile(3, a, new Vector3Int(250 * 32 - 1, 250 * 32 - 1, 32));
-        //}
+        globalMeshGenerator.folder = "C:/Users/leozw/Desktop/ADC/global/out/";
 
-
-        master.onStateChange += terrain.onStateChange;
+        master.onStateChange += craterTerrainController.onStateChange;
 
         planet sun = new planet(
-            new bodyInfo("sun", 696340, new timeline(), bodyType.sun),
+            new bodyInfo("Sun", 696340, new timeline(), bodyType.sun),
             new bodyRepresentationInfo(general.defaultMat, false));
         planet earth = new planet(
-            new bodyInfo("earth", 6371, new timeline(1.494757194768592E+08, 1.684950075464667E-02, 4.160341414638201E-03, 2.840153557215478E+02, 1.818203397569767E+02, 2.704822621765425E+02, time.strDateToJulian("2022 Oct 8 00:00:00.0000"), 3.986004418e14), bodyType.planet),
+            new bodyInfo("Earth", 6371, new timeline(1.494757194768592E+08, 1.684950075464667E-02, 4.160341414638201E-03, 2.840153557215478E+02, 1.818203397569767E+02, 2.704822621765425E+02, time.strDateToJulian("2022 Oct 8 00:00:00.0000"), 3.986004418e14), bodyType.planet),
             new bodyRepresentationInfo(general.earthMat));
-        planet moon = new planet(
-            new bodyInfo("moon", 1737.4, new timeline(3.864958215095060E+05, 4.538937397897071E-02, 2.745404561156122E+01, 3.005845860250088E+02, 7.757615787462679, 5.234116546697739E+01, 2459861.5, 3.9860E+7), bodyType.moon),
+        moon = new planet(
+            new bodyInfo("Luna", 1737.4, new timeline(3.864958215095060E+05, 4.538937397897071E-02, 2.745404561156122E+01, 3.005845860250088E+02, 7.757615787462679, 5.234116546697739E+01, 2459861.5, 3.9860E+7), bodyType.moon),
             new bodyRepresentationInfo(general.moonMat));
 
         crater haworth =                  new crater("Haworth",                    new geographic(-86.7515237574502, -22.7749958363969), moon, new terrainFilesInfo("haworth",                    new List<Vector2Int>() {new Vector2Int(20, 1)}));
@@ -88,15 +81,23 @@ public class controller : MonoBehaviour {
         crater malapertMassif =           new crater("Malapert Massif",            new geographic(-85.9898087775699, -0.23578026342289), moon, new terrainFilesInfo("malapert massif",            new List<Vector2Int>() {new Vector2Int(20, 1)}));
         crater nobileRim1 =               new crater("Nobile Rim 1",               new geographic(-85.4341491794868, 37.3666165277427),  moon, new terrainFilesInfo("nobile rim 1",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
         crater nobileRim2 =               new crater("Nobile Rim 2",               new geographic(-83.9510469034538, 58.8220823262493),  moon, new terrainFilesInfo("nobile rim 2",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater mareCrisium =               new crater("mareCrisium",               new geographic(17, 59.1),  moon, new terrainFilesInfo("nobile rim 2",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater mareFecunditatis =               new crater("mareFecunditatis",               new geographic(-7.8, 51.3),  moon, new terrainFilesInfo("nobile rim 2",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater mareTranquillitatis =               new crater("mareTranquillitatis",               new geographic(8.5, 31.4),  moon, new terrainFilesInfo("nobile rim 2",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater kepler =               new crater("kepler",               new geographic(8.1, -38.0),  moon, new terrainFilesInfo("nobile rim 2",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
+        crater tycho =               new crater("tycho",               new geographic(-43.31, -11.36),  moon, new terrainFilesInfo("nobile rim 2",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
 
         body.addFamilyNode(sun, earth);
         body.addFamilyNode(earth, moon);
 
         master.referenceFrameBody = moon;
 
+        new globalTerrainController(moon, true);
+
         master.markInit();
 
         master.scale = master.scale; // update all planets scale
+        master.changeState(programStates.interplanetary);
 
         Coroutine mainClock = StartCoroutine(internalClock(3600, int.MaxValue, (tick) => {
             master.incrementTime(master.timestep);

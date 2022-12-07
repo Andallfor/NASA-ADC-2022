@@ -1,32 +1,99 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using NumSharp;
-using System.Net;
-using UnityEngine.Rendering;
+using System.IO;
 using System;
-using Unity.Collections;
-using System.Diagnostics;
 
 public static class globalMeshGenerator {
-    private static Dictionary<Vector2Int, int[]> trianglePresets = new Dictionary<Vector2Int, int[]>();
-    private static bool alreadyInit = false;
-    private static Vector2 stepSizeGeo = new Vector2(15, 30);
-    private static Vector2 stepSizePoint = new Vector2(1024 * 15, 1024 * 30);
-    private static serverConnection connection;
-    private static ComputeShader computeShader = Resources.Load<ComputeShader>("shaders/heightToCart");
-    public static void initialize() {
-        if (alreadyInit) return;
+    private static Dictionary<Vector2Int, int[]> triangles = new Dictionary<Vector2Int, int[]>() {
+        {new Vector2Int(250, 250), genTriangles(250, 250)},
+        {new Vector2Int(200, 200), genTriangles(200, 200)}};
+    public static string folder;
 
-        connection = new serverConnection(Dns.GetHostName(), 6969);
+    public static decompTerrainData requestGlobalTerrain(string subFolder, Vector2Int fileStart, Vector2Int pStart, Vector2Int pEnd, int rlevel, int qual, bool isSmall) {
+        double x = fileStart.x;
+        if (fileStart.x < 0) x += 360f;
 
-        trianglePresets = new Dictionary<Vector2Int, int[]>() {
-            {new Vector2Int(250, 250), genTriangles(250, 250)},
-            {new Vector2Int(251, 250), genTriangles(251, 250)},
-            {new Vector2Int(250, 251), genTriangles(250, 251)},
-            {new Vector2Int(251, 251), genTriangles(251, 251)}};
+        decompTerrainData decomp = new decompTerrainData();
+        decomp.offset = new geographic(fileStart.y, fileStart.x);
+        decomp.srcSize = new Vector2Int(pEnd.x - pStart.x, pEnd.y - pStart.y);
+        decomp.size = new Vector2Int(decomp.srcSize.x / (int) Math.Pow(2, rlevel), decomp.srcSize.y / (int) Math.Pow(2, rlevel));
+        decomp.res = (int) Math.Pow(2, rlevel);
+        decomp.start = pStart;
+        decomp.end = pEnd;
+        decomp.isSmall = isSmall;
+        if (isSmall) {
+            decomp.stepSizeGeoX = 60;
+            decomp.stepSizeGeoY = 60;
+            decomp.fileLengthX = 1920;
+            decomp.fileLengthY = 1920;
+        } else {
+            decomp.stepSizeGeoX = 30;
+            decomp.stepSizeGeoY = 15;
+            decomp.fileLengthX = 30720;
+            decomp.fileLengthY = 15360;
+        }
 
-        alreadyInit = true;
+        string prefix = isSmall ? "small_" : "";
+        string ns = format(fileStart.y, 2);
+        string ne = format(fileStart.y + (int) decomp.stepSizeGeoY, 2);
+        string ss = format((int) x, 3, false);
+        string se = format((int) x + (int) decomp.stepSizeGeoX, 3, false);
+        string name = Path.Combine(folder, subFolder, prefix + $"trn_1024_{ns}_{ne}_{ss}_{se}.jp2");
+
+        if (!File.Exists(name)) throw new ArgumentException("Unable to find specified file " + name);
+
+        // TODO: add function that reads header of files to extract the allowed ranges of these numbers?
+        int[] heights = openJpegWrapper.requestTerrain(name, pStart, pEnd, (uint) rlevel, (uint) qual);
+        decomp.data = heights;
+
+        return decomp;
+    }
+
+    public static decompMeshData generateDecompData(decompTerrainData data) {
+        // TODO: pass in data as a percent of max height, that way we can use shaders (since the data will be 0-1)?
+        // look into alt ways of minimizing stored data in jp2/write own jp2 writer
+        int len = data.size.x * data.size.y;
+        Vector3[] verts = new Vector3[len];
+        Vector2[] uvs = new Vector2[len];
+        for (int i = 0; i < len; i++) {
+            int x = i % data.size.x;
+            int y = data.size.y - ((i - x) / data.size.x);
+            geographic p = new geographic(
+                data.offset.lat + (float) (data.start.y + y * data.res) / data.fileLengthY * data.stepSizeGeoY,
+                data.offset.lon + (float) (data.start.x + x * data.res) / data.fileLengthX * data.stepSizeGeoX);
+
+            position point = p.toCartesian(1737.1 - 32.767 + (float) data.data[i] / 1000f).swapAxis() / master.scale;
+            verts[i] = (Vector3) point;
+
+            uvs[i] = new Vector2(
+                (float) x / (float) data.size.x,
+                (float) (data.size.y - y) / (float) data.size.y);
+        }
+
+        int[] tris;
+        if (triangles.ContainsKey(data.size)) tris = triangles[data.size];
+        else {
+            Debug.LogWarning("Do not have pregenerated triangle array of size " + data.size.ToString() + ". Generating new triangle array of this size.");
+            tris = genTriangles(data.size.x, data.size.y);
+            triangles[data.size] = tris;
+        }
+
+        decompMeshData d = new decompMeshData();
+        d.verts = verts;
+        d.tris = tris;
+        d.uvs = uvs;
+        return d;
+    }
+
+    private static string format(int v, int c, bool useSuffix = true) {
+        string suffix = useSuffix ? (v < 0 ? "s" : "n") : "";
+        string av = Math.Abs(v).ToString();
+        int len = av.Length;
+
+        if (v == 0) return new String('0', c) + suffix;
+        else if (len < c) return new String('0', c - len) + av + suffix;
+        else return av + suffix;
     }
 
     private static int[] genTriangles(int x, int y) {
@@ -50,68 +117,10 @@ public static class globalMeshGenerator {
 
         return trianglePreset;
     }
+}
 
-    public static async void generateTile(int layer, Vector2Int fileCoord, Vector3Int range, bool flush = false) {
-        if (!((range.z != 0) && ((range.z & (range.z - 1)) == 0))) throw new ArgumentException("Resolution must be a power of 2");
-
-        Stopwatch watch = new Stopwatch();
-        watch.Start();
-
-        globalMeshData data = await connection.requestLunarTerrainSocket(layer, fileCoord, range, flush);
-        int[] heights = data.heights;
-
-        // rewrite using dist to calc offset
-        // pass in pixel start to buffer/modify bounds?
-        // or maybe bounds is just incorrect due to incorrect bound values being passed in
-        float distX = (float) stepSizeGeo.x * (((float) data.size.x * (float) range.z) / (float) stepSizePoint.x);
-        float distY = (float) stepSizeGeo.y * (((float) data.size.y * (float) range.z) / (float) stepSizePoint.y);
-        float offsetX = (float) fileCoord.x + (float) stepSizeGeo.x * ((float) range.x / stepSizePoint.x);
-        float offsetY = (float) fileCoord.y + (float) stepSizeGeo.y * ((float) range.y / stepSizePoint.y);
-
-        UnityEngine.Debug.Log($"{range} {offsetX} {offsetY} {distX} {distY}");
-
-        Vector4 bounds = new Vector4(
-            offsetX, offsetY,
-            offsetX + distX, offsetY + distY);
-        
-        // TODO: get this to accept shorts/have requestLunarTerrain return shorts then convert to int
-        GraphicsBuffer heightsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, heights.Length, sizeof(int));
-        GraphicsBuffer pointsBuffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, heights.Length, sizeof(float) * 3);
-        
-        int id = computeShader.FindKernel("heightToCart");
-
-        computeShader.SetBuffer(id, "inHeights", heightsBuffer);
-        computeShader.SetBuffer(id, "outPoints", pointsBuffer);
-        computeShader.SetVector("bounds", bounds);
-        computeShader.SetFloat("scale", (float) master.scale);
-        computeShader.SetInt("boundX", data.size.x);
-        computeShader.SetInt("boundY", data.size.y);
-        heightsBuffer.SetData(heights);
-
-        computeShader.GetKernelThreadGroupSizes(id, out uint threadX, out _, out _);
-        computeShader.Dispatch(id, Mathf.CeilToInt((float) (data.size.x * data.size.y) / threadX), 1, 1);
-
-        Mesh m = new Mesh();
-        VertexAttributeDescriptor[] layout = new VertexAttributeDescriptor[1] {
-            new VertexAttributeDescriptor(VertexAttribute.Position, VertexAttributeFormat.Float32, 3)
-        };
-        AsyncGPUReadback.Request(pointsBuffer, (req) => {
-            NativeArray<Vector3> arr = req.GetData<Vector3>();
-            //m.SetVertexBufferParams(250 * 250, layout); // this causes mesh to hide itself/phase in and out of existance at different angles
-            //m.SetVertexBufferData(arr, 0, 0, arr.Length);
-            m.vertices = arr.ToArray();
-            m.triangles = trianglePresets[data.size];
-            m.RecalculateNormals();
-            m.name = range.ToString();
-
-            GameObject go = GameObject.Instantiate(general.bodyPrefab);
-            go.GetComponent<MeshFilter>().mesh = m;
-
-            heightsBuffer.Dispose();
-            pointsBuffer.Release();
-
-            watch.Stop();
-            UnityEngine.Debug.Log($"(Total) {range}: layer {layer} and resolution {range.z} in {watch.ElapsedMilliseconds}ms");
-        });
-    }
+public struct decompMeshData {
+    public Vector3[] verts;
+    public int[] tris;
+    public Vector2[] uvs;
 }

@@ -75,3 +75,7 @@ Assets/StreamingAssets/pythonWindows/Lib/site-packages/numpy.meta
 Assets/StreamingAssets/pythonWindows/Lib/site-packages/pip.meta
 Assets/StreamingAssets/pythonWindows/Lib/site-packages/pip/_vendor.meta
 Assets/StreamingAssets/pythonWindows/Lib/site-packages/pip/_vendor/urllib3.meta
+
+# high res textures
+Assets/Resources/textures/highResNormals
+Assets/Resources/textures/highResColorMaps

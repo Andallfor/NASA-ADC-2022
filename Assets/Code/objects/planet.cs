@@ -19,6 +19,13 @@ public class planet : body {
     #region INSTANCE METHODS
     /// <summary> Get the position of the geographic point on this planet centered on the center of the planet, in world space and accounting for its rotation. </summary>
     public position rotateLocalGeo(geographic g, double alt) => geographic.toGeographic(representation.gameObject.transform.rotation * (Vector3) (g.toCartesian(information.radius + alt)).swapAxis(), information.radius).toCartesian(information.radius + alt).swapAxis();
+    /// <summary> Takes a pos centered on (0, 0) and converts it to the respective geographic on the planet, respecting the planets rotation </summary>
+    public geographic localPosToLocalGeo(position p) => geographic.toGeographic(Quaternion.Inverse(representation.gameObject.transform.rotation) * (Vector3) (p / master.scale), information.radius);
+    public Vector3 localGeoToUnityPos(geographic g, double alt) {
+        position c = representation.gameObject.transform.rotation * (Vector3) (g.toCartesian(information.radius + alt)).swapAxis();
+        geographic gg = geographic.toGeographic(c, information.radius);
+        return (Vector3) ((gg.toCartesian(information.radius + alt) + worldPos - master.playerPosition - master.referenceFrame) / master.scale).swapAxis();
+    }
     #endregion
 
     #region OVERRIDES/OPERATORS

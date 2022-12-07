@@ -43,7 +43,7 @@ public class crater {
         update();
         updateScale();
 
-        terrain.registerCrater(terrainData.name, terrainData);
+        craterTerrainController.registerCrater(terrainData.name, terrainData);
 
         master.registeredCraters.Add(this);
     }
@@ -68,7 +68,7 @@ public class crater {
     }
 
     public void select() {
-        terrain.currentCrater = this;
+        craterTerrainController.currentCrater = this;
         master.changeState(programStates.planetaryTerrain);
     }
 }
