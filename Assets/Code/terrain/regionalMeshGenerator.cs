@@ -13,7 +13,7 @@ public class regionalMeshGenerator {
     private double radius;
     private string name, basePath, pathToRegion;
     private List<double> lats, lons, heights, slopes;
-    private double maxHeight = -1000, minHeight = 1000, maxSlope = -1000, minSlope = 1000, maxAzimuth = -1000, minAzimuth = 1000, maxEle = -1000, minEle = 1000;
+    private double maxHeight = -1000, minHeight = 1000, maxSlope = -1000, minSlope = 1000, maxAzimuth = -1000, minAzimuth = 1000, maxEle = -1000, minEle = 1000,maxX,maxY,minX,minY;
     #endregion
 
     /// <summary> Generate a region's mesh. Used only in preprocessing, do not actually show to user. </summary>
@@ -77,6 +77,7 @@ public class regionalMeshGenerator {
         int idealHeight = (trueYSize / multi) / numSubMeshes;
         int reminderWidth = (trueXSize / multi) - (idealWidth * (numSubMeshes - 1));
         int reminderHeight = (trueYSize / multi) - (idealHeight * (numSubMeshes - 1));
+        maxX = 0;
         for (int i = 0; i < numSubMeshes; i++) {
             for (int j = 0; j < numSubMeshes; j++) {
                 int width = (i == numSubMeshes - 1) ? reminderWidth : idealWidth + 1;
@@ -96,7 +97,7 @@ public class regionalMeshGenerator {
                         double lon = lons[index];
                         double h = heights[index];
                         position p = ((geographic.toCartesian(lat, lon, h / 1000.0 + radius) - offset) / master.scale).swapAxis();
-
+                        
                         verts[k] = (Vector3) p;
                         uvs[k] = new Vector2((float) x / width, (float) y / height);
                         k++;

@@ -21,10 +21,10 @@ public class playerControls : MonoBehaviour {
 
         if (master.currentState == programStates.interplanetary || master.currentState == programStates.planetaryTerrain) {
             
-            if (m==cameraModes.typical)
+            if (m==cameraModes.typical||master.currentState==programStates.planetaryTerrain)
             {
                 bodyRotation.update(cameraModes.typical);
-                if (Input.GetKeyDown(KeyCode.C))
+                if (Input.GetKeyDown(KeyCode.C)&& master.currentState != programStates.planetaryTerrain)
                 {
                     m=cameraModes.drone;
                 }
@@ -92,13 +92,34 @@ internal class bodyRotationalControls {
         if (Input.mouseScrollDelta.y != 0) {
             if (master.currentState == programStates.interplanetary)
             {
-                change = (float) (6f*((Vector3.Distance(Vector3.zero,general.camera.transform.position)+ 0.005f - (1737.4f/master.scale))/2 *Mathf.Sign(Input.mouseScrollDelta.y)));
+                change = (float) (6f*((Vector3.Distance(Vector3.zero,general.camera.transform.position)+ 0.005f - master.registeredPlanets[2].representation.transform.localScale.x/2)/2 *Mathf.Sign(Input.mouseScrollDelta.y)));
+                if (master.registeredPlanets[2].representation.transform.localScale.x > 7.5)
+                {
+
+                    if (general.camera.fieldOfView > 60)
+                    {
+                        master.scale -= change;
+                        general.camera.fieldOfView = 60;
+                    }
+                    else
+                    {
+                        general.camera.fieldOfView -= change/5;
+                    }
+                }
+                else
+                {
+                    master.scale -= change;
+                }
             }
             else
             {
-                change = -(float)(0.001 * (master.scale)) * Mathf.Sign(Input.mouseScrollDelta.y);
+                change = -(float)(0.01 * (master.scale)) * Mathf.Sign(Input.mouseScrollDelta.y);
+                master.scale -= change;
+
             }
-            master.scale -= change;
+
+            //master.scale -= change;
+
             if (1737.4f/(master.scale-change) < Vector3.Distance(Vector3.zero, general.camera.transform.position))
             {
                
@@ -116,7 +137,7 @@ internal class bodyRotationalControls {
         if(mode == cameraModes.drone)
         {
             if(Input.GetMouseButton(0))general.camera.transform.eulerAngles += new Vector3(-Input.GetAxisRaw("Mouse Y"), Input.GetAxisRaw("Mouse X"), 0.0f);
-            general.camera.transform.position += .05f*Input.GetAxisRaw("Vertical")* general.camera.transform.forward+.005f * Input.GetAxisRaw("Horizontal") * general.camera.transform.right+0.0f*general.camera.transform.up;
+            general.camera.transform.position += .05f*Input.GetAxisRaw("Vertical")* general.camera.transform.forward+.05f * Input.GetAxisRaw("Horizontal") * general.camera.transform.right+0.0f*general.camera.transform.up;
             
         }
 
