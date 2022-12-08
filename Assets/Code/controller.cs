@@ -52,7 +52,8 @@ public class controller : MonoBehaviour {
         //terrain.processRegion("de gerlache rim 1", 20, 1);
         //terrain.processRegion("de gerlache rim 2", 20, 1);
         //terrain.processRegion("faustini rim a", 20, 1);
-        //terrain.processRegion("leibnitz beta plateau", 20, 1);
+        //craterTerrainController.processRegion("leibnitz beta plateau", 20, 1);
+        //craterTerrainController.processRegion("regional", 20, 1);
 
         globalMeshGenerator.folder = "C:/Users/leozw/Desktop/ADC/global/out/";
 

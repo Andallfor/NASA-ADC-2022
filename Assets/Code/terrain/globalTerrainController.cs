@@ -15,6 +15,7 @@ public class globalTerrainController {
     private HashSet<geographic> currentDesiredMeshes = new HashSet<geographic>();
     private Dictionary<geographic, globalTerrainInstance> aliveMeshes = new Dictionary<geographic, globalTerrainInstance>();
     private Material mat;
+    private double lastScale;
     private List<Vector2> directions = new List<Vector2>() {
         new Vector2(-1, 1),  new Vector2(0, 1),  new Vector2(1, 1),
         new Vector2(-1, 0),                      new Vector2(1, 0),
@@ -40,10 +41,6 @@ public class globalTerrainController {
         if (e.newState == programStates.interplanetary) {
             // init
             master.onUpdateEnd += update;
-
-            // update shader to account for sun pos
-            Vector3 v = master.sun.representation.transform.position.normalized;
-            mat.SetVector("_lightDir", v);
         } else if (e.previousState == programStates.interplanetary) {
             // cleanup
             master.onUpdateEnd -= update;
@@ -52,9 +49,18 @@ public class globalTerrainController {
 
     public void update(object s, EventArgs e) {
         if (master.referenceFrameBody.name != parent.name) return;
+
+        // update shader to account for sun pos
+        Vector3 v = master.sun.representation.transform.position.normalized;
+        mat.SetVector("_lightDir", v);
+
         Vector3 detectorPos = general.camera.WorldToScreenPoint(movementDetector.transform.position);
-        if (Vector3.Distance(detectorPos, lastDetectorPos) < 0.05f) return;
+        bool movement = Vector3.Distance(detectorPos, lastDetectorPos) < 0.05f;
+        bool scale = Math.Abs(master.scale - lastScale) > 10;
+        if (!movement && !scale) return;
+
         lastDetectorPos = detectorPos;
+        lastScale = master.scale;
 
         HashSet<geographic> target = findDesiredMeshes();
 
@@ -82,27 +88,12 @@ public class globalTerrainController {
     }
 
     private HashSet<geographic> findDesiredMeshes() {
-        /*
-        Assumptions:
-        1. planet is always at (0, 0, 0)
-        
-        Steps:
-        1. draw a line from the center of the planet to the camera
-        2. find the intersection of this line with the planet itself
-        3. get the tile that contains said the point of intersection
-        4. begin a flood fill algorithm
-            a. Queue of starting positions (tiles directly next to intersected tile)
-            b. check the four corners, if any of them are on screen, accept them
-                -> lineSphereIntersection. If the corner is the point closer to the screen, then it is on screen
-                -> also check if the box that they make intersects the camera rendering box
-        */
-
         double scaledRadius = parent.information.radius / master.scale;
 
         position[] intersections = position.lineSphereIntersection(
-            Vector3.zero, // see assumption 1
+            parent.representation.transform.position,
             general.camera.transform.position,
-            Vector3.zero, // see assumption 1
+            parent.representation.transform.position,
             scaledRadius);
         
         // get the point closest to the camera, the other point would be obscured by the planet itself
@@ -128,35 +119,6 @@ public class globalTerrainController {
             HashSet<geographic> nextFrontier = new HashSet<geographic>();
             while (frontier.Count != 0) {
                 geographic ll = frontier.Dequeue();
-
-                geographic[] corners = new geographic[4] { // ll, tl, tr, lr
-                    ll, ll + new geographic(step.lat, 0),
-                    ll + new geographic(step.lat, step.lon), ll + new geographic(0, step.lon)};
-
-                bool anyVisible = false;
-                for (int i = 0; i < 4; i++) {
-                    Vector3 v = parent.localGeoToUnityPos(corners[i], 0);
-                    position[] ints = position.lineSphereIntersection(v, general.camera.transform.position, Vector3.zero, scaledRadius);
-                    
-                    if (ints.Length == 1 || ints.Length == 0) {
-                        // tangent line, must be visible
-                        // idk what happens what the length is 0
-                        anyVisible = true;
-                        break;
-                    }
-
-                    // check to see which point v is closer to
-                    // 1st is the point closest to the camera
-                    position[] sorted = ints.OrderBy(x => x.distanceTo(general.camera.transform.position)).ToArray();
-                    if (position.distance(sorted[0], v) < position.distance(sorted[1], v)) {
-                        anyVisible = true;
-                        break;
-                    }
-
-                    // TODO: check if box formed by corners overlaps camera
-                }
-
-                //if (!anyVisible) continue;
                 
                 allOffscreen = false;
 
@@ -174,6 +136,8 @@ public class globalTerrainController {
 
         return visited;
     }
+
+    private Vector2 vec3To2(Vector3 v) => new Vector2(v.x, v.y);
 
     private HashSet<geographic> getNearbyTiles(geographic start, geographic step) {
         HashSet<geographic> output = new HashSet<geographic>();

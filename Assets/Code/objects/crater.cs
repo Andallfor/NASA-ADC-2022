@@ -89,7 +89,14 @@ public struct terrainFilesInfo {
         this.folderData = folderData;
 
         pathToFolder = Path.Combine(general.regionalFileHostLocation.Split(',').Last().Trim(), name);
-        bounds = JsonConvert.DeserializeObject<Dictionary<string, double[]>>(File.ReadAllText(Path.Combine(pathToFolder, "bounds.json")));
-        map = Resources.Load("maps/" + name) as Texture2D;
+
+        if (!File.Exists(Path.Combine(pathToFolder, "bounds.json"))) {
+            Debug.LogWarning("Could not find " + Path.Combine(pathToFolder, "bounds.json"));
+            bounds = null;
+            map = null;
+        } else {
+            bounds = JsonConvert.DeserializeObject<Dictionary<string, double[]>>(File.ReadAllText(Path.Combine(pathToFolder, "bounds.json")));
+            map = Resources.Load("maps/" + name) as Texture2D;
+        }
     }
 }
