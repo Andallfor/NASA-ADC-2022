@@ -79,3 +79,6 @@ Assets/StreamingAssets/pythonWindows/Lib/site-packages/pip/_vendor/urllib3.meta
 # high res textures
 Assets/Resources/textures/highResNormals
 Assets/Resources/textures/highResColorMaps
+
+# editor layour
+UserSettings/Layouts/CurrentMaximizeLayout.dwlt

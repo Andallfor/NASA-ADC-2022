@@ -14,6 +14,7 @@ public class globalTerrainController {
     private Vector3 lastDetectorPos = Vector3.zero;
     private HashSet<geographic> currentDesiredMeshes = new HashSet<geographic>();
     private Dictionary<geographic, globalTerrainInstance> aliveMeshes = new Dictionary<geographic, globalTerrainInstance>();
+    private Material mat;
     private List<Vector2> directions = new List<Vector2>() {
         new Vector2(-1, 1),  new Vector2(0, 1),  new Vector2(1, 1),
         new Vector2(-1, 0),                      new Vector2(1, 0),
@@ -31,12 +32,18 @@ public class globalTerrainController {
         movementDetector.transform.position = Vector3.one;
         movementDetector.GetComponent<MeshRenderer>().enabled = false;
         parent.representation.GetComponent<MeshRenderer>().enabled = false;
+
+        mat = Resources.Load("materials/globalTerrain") as Material;
     }
 
     public void onStateChange(object s, stateChangeEvent e) {
         if (e.newState == programStates.interplanetary) {
             // init
             master.onUpdateEnd += update;
+
+            // update shader to account for sun pos
+            Vector3 v = master.sun.representation.transform.position.normalized;
+            mat.SetVector("_lightDir", v);
         } else if (e.previousState == programStates.interplanetary) {
             // cleanup
             master.onUpdateEnd -= update;
