@@ -10,15 +10,59 @@ public enum cameraModes
 /// <summary> The controls of the player. </summary>
 public class playerControls : MonoBehaviour {
     cameraModes m = cameraModes.typical;
-
+    private Vector3 seekerPos = new Vector3(1, 0, 0);
+    private Vector3 hiderPos = new Vector3(0, 0, 0);
+    private Plane elevationPlane;
+    private bool selected = false;
+    private GameObject selectedObject = null;
+    private int height = 0;
     private bodyRotationalControls bodyRotation;
+    float times;
     public void Awake() {
         bodyRotation = new bodyRotationalControls();
+        elevationPlane = new Plane(Vector3.up, new Vector3(0, -height, 0));
+        
     }
 
     void Update() {
-        if (!master.initialized) return;
 
+        if (!master.initialized) return;
+        if (master.currentState == programStates.planetaryTerrain && Input.GetMouseButtonDown(0)&&selected==false)
+        {
+            times = Time.deltaTime;
+            RaycastHit hit;
+            Ray ray = general.camera.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out hit))
+            {
+                if (hit.collider == GameObject.Find("seeker").GetComponent<Collider>())
+                {
+                    selected = true;
+                    selectedObject = GameObject.Find("seeker");
+
+                }
+                else if(hit.collider == GameObject.Find("hider").GetComponent<Collider>())
+                {
+                    selected = true;
+                    selectedObject = GameObject.Find("hider");
+                }
+            }
+        }
+        if (selected)
+        {
+            float enter = 0.0f;
+            if (Input.GetMouseButtonDown(0)&&times!=Time.deltaTime)
+            {
+                selected = false;
+                selectedObject = null;
+            }
+            
+            else if(elevationPlane.Raycast(general.camera.ScreenPointToRay(Input.mousePosition),out enter))
+            {
+                
+                Vector3 hitPoint = general.camera.ScreenPointToRay(Input.mousePosition).GetPoint(enter);
+                selectedObject.transform.position = hitPoint;
+            }
+        }
         if (master.currentState == programStates.interplanetary || master.currentState == programStates.planetaryTerrain) {
             
             if (m==cameraModes.typical||master.currentState==programStates.planetaryTerrain)
@@ -50,9 +94,13 @@ public class playerControls : MonoBehaviour {
     }
     IEnumerator yes()
     {
-        for (int i = 0; i < 120; i++)
-        {
-            general.camera.transform.rotation =Quaternion.LookRotation(Vector3.RotateTowards(general.camera.transform.forward,( master.registeredPlanets[2].representation.transform.position-general.camera.transform.position), Mathf.Deg2Rad * Vector3.Angle(general.camera.transform.forward, master.registeredPlanets[2].representation.transform.position - general.camera.transform.position)/120, 0.0f));
+        Vector3 endPos = new Vector3(0, 0, 5);
+        float step = Vector3.Angle(general.camera.transform.forward, (master.moon.transform.position - endPos).normalized) / 120;
+        float step1 = Vector3.Distance(general.camera.transform.position, endPos)/120.0f;
+        while(Vector3.Distance(general.camera.transform.position, endPos) > .25f) { 
+            general.camera.transform.rotation =Quaternion.LookRotation(Vector3.RotateTowards(general.camera.transform.forward,( master.moon.transform.position-endPos).normalized, Mathf.Deg2Rad * step*Time.deltaTime*100, 10000f));
+
+            general.camera.transform.position = Vector3.MoveTowards(general.camera.transform.position, endPos, step1*100*Time.deltaTime);
             yield return null;
         }
     }
@@ -63,7 +111,16 @@ internal class bodyRotationalControls {
     
     private Vector3 planetFocusMousePosition, planetFocusMousePosition1, rotation;
     private float change;
+
     public void update(cameraModes mode) {
+        if (master.currentState == programStates.planetaryTerrain&&Input.GetKeyDown(KeyCode.Alpha1)) { craterTerrainController.mode = 0; }
+        if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha2)) { craterTerrainController.mode = 1; }
+        if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha3)) { craterTerrainController.mode = 2; }
+        if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha4)) { craterTerrainController.mode = 3; }
+        if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha5)) { craterTerrainController.mode = 4; master.scale = 4; }
+        
+        
+        craterTerrainController.colorUpdate();
         if (Input.GetMouseButtonDown(0)) planetFocusMousePosition = Input.mousePosition;
         else if (Input.GetMouseButton(0)) {
             Vector3 difference = Input.mousePosition - planetFocusMousePosition;
@@ -92,8 +149,8 @@ internal class bodyRotationalControls {
         if (Input.mouseScrollDelta.y != 0) {
             if (master.currentState == programStates.interplanetary)
             {
-                change = (float) (6f*((Vector3.Distance(Vector3.zero,general.camera.transform.position)+ 0.005f - master.registeredPlanets[2].representation.transform.localScale.x/2)/2 *Mathf.Sign(Input.mouseScrollDelta.y)));
-                if (master.registeredPlanets[2].representation.transform.localScale.x > 7.5)
+                change = (float) (6f*((Vector3.Distance(Vector3.zero,general.camera.transform.position)+ 0.005f - master.moon.transform.localScale.x/2)/2 *Mathf.Sign(Input.mouseScrollDelta.y)));
+                if (master.moon.transform.localScale.x > 7.5)
                 {
 
                     if (general.camera.fieldOfView > 60)
@@ -111,7 +168,8 @@ internal class bodyRotationalControls {
                     master.scale -= change;
                 }
             }
-            else
+            
+            else if(craterTerrainController.mode!=4)
             {
                 change = -(float)(0.01 * (master.scale)) * Mathf.Sign(Input.mouseScrollDelta.y);
                 master.scale -= change;

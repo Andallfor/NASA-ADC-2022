@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 
 public static class craterTerrainController
 {
+    public static int mode=0;
     public static List<GameObject> activeMeshes = new List<GameObject>();
     public static crater currentCrater;
     public static Dictionary<string, terrainFilesInfo> craterData = new Dictionary<string, terrainFilesInfo>();
@@ -19,6 +20,7 @@ public static class craterTerrainController
     public static Node[,] grid;
     public static List<Node> path=new List<Node>();
     private static Mesh m;
+    public static Texture2D pathTexture;
 
 
     public static void processRegion(string region, int r, int n)
@@ -81,8 +83,6 @@ public static class craterTerrainController
 
             m.RecalculateBounds();
 
-            Debug.Log(m.bounds);
-
             // TODO generate uvs not here
             // TODO: bug -> if mesh num != 1, uvs do not map correctly
             Vector3[] verts = m.vertices;
@@ -123,7 +123,8 @@ public static class craterTerrainController
 
             Material mat = go.GetComponent<MeshRenderer>().sharedMaterial;
 
-            mat.SetInt("_map", 2);
+            mat.SetInt("_map", mode);
+           
             mat.SetTexture("_mainTex", craterData[region].map);
 
             // the meshes were saved with a master.scale of 1000, however the current scale may not match
@@ -270,7 +271,29 @@ public static class craterTerrainController
 
         return output;
     }
+    public static void colorUpdate()
+    {
+        if (activeMeshes.Count == 0) return;
+        
+        foreach (GameObject go in activeMeshes)
+        {
+            Material mat = go.GetComponent<MeshRenderer>().sharedMaterial;
+            if (mode != 4)
+            {
+                
+                mat.shader = Shader.Find("Custom/mapShader");
+                mat.SetInt("_map", mode);
 
+            }
+            if (mode == 4&&pathTexture!=null)
+            {
+                
+                mat.shader = Shader.Find("Unlit/Texture");
+                mat.SetTexture("_MainTex", pathTexture);
+            }
+        }
+        
+    }
     public static void update(object sender, EventArgs e)
     {
         if (activeMeshes.Count == 0) return;
@@ -278,6 +301,9 @@ public static class craterTerrainController
         {
             foreach (GameObject go in activeMeshes)
             {
+                Material mat = go.GetComponent<MeshRenderer>().sharedMaterial;
+                //mat.SetInt("_map", mode);
+                
                 go.transform.localScale = new Vector3(
                     1000f / (float)master.scale,
                     1000f / (float)master.scale,

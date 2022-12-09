@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 public class Pathfind : MonoBehaviour
@@ -50,6 +51,46 @@ public class Pathfind : MonoBehaviour
             }
         }
     }
+    public Texture2D generateTexture()
+    {
+        Texture2D tex = new Texture2D(craterTerrainController.gridSizeX, craterTerrainController.gridSizeY);
+        Color[] colors = new Color[craterTerrainController.gridSizeX* craterTerrainController.gridSizeY];
+        foreach (Node i in craterTerrainController.grid)
+        {
+            /*
+            Debug.Log(craterTerrainController.path.Contains(i));
+            if (craterTerrainController.path.Contains(i))
+            {
+                colors[i.gridX* craterTerrainController.gridSizeY+i.gridY] = Color.blue;
+            }
+            else if (i.walkable == true)
+            {
+                colors[i.gridX * craterTerrainController.gridSizeY + i.gridY] = Color.green;
+            }
+            else
+            {
+                colors[i.gridX * craterTerrainController.gridSizeY + i.gridY] = Color.red;
+            }
+*/
+            if (craterTerrainController.path.Contains(i))
+            {
+                tex.SetPixel(i.gridY, i.gridX, Color.blue);
+            }
+            else if (i.walkable == true)
+            {
+                tex.SetPixel(i.gridY, i.gridX, Color.green);
+            }
+            else
+            {
+                tex.SetPixel(i.gridY,i.gridX,Color.red);
+            }
+            
+        }
+        //tex.SetPixels(colors);
+        tex.Apply();
+        craterTerrainController.pathTexture = tex;
+        return (tex);
+    }
     void retrace(Node start, Node end)
     {
         List<Node> path = new List<Node>();
@@ -76,17 +117,21 @@ public class Pathfind : MonoBehaviour
     // Start is called before the first frame update
     void Awake()
     {
-        
+        craterTerrainController.pathTexture = null;
 
     }
 
     // Update is called once per frame
     void Update()
     {
+        seeker.active = (master.currentState == programStates.planetaryTerrain && craterTerrainController.mode == 4);
+        hider.active = (master.currentState == programStates.planetaryTerrain && craterTerrainController.mode == 4);
         if (Input.GetKeyDown(KeyCode.Return)&&master.currentState==programStates.planetaryTerrain)
         {
-            Debug.Log("yes");
-            find(craterTerrainController.worldPosToNode(seeker.transform.position), craterTerrainController.worldPosToNode(hider.transform.position));
+            generateTexture();
+            find(craterTerrainController.worldPosToNode(new Vector3(seeker.transform.position.z,0,seeker.transform.position.x*-1)), craterTerrainController.worldPosToNode(new Vector3(hider.transform.position.z , 0, hider.transform.position.x*-1)));
+            //byte[] bytes = generateTexture().EncodeToPNG();
+            //File.WriteAllBytes("C:/Users/ltriv/Downloads/texturetest.png", bytes);
 
         }
 

@@ -68,6 +68,7 @@ public class controller : MonoBehaviour {
         moon = new planet(
             new bodyInfo("Luna", 1737.4, new timeline(3.864958215095060E+05, 4.538937397897071E-02, 2.745404561156122E+01, 3.005845860250088E+02, 7.757615787462679, 5.234116546697739E+01, 2459861.5, 3.9860E+7), bodyType.moon),
             new bodyRepresentationInfo(general.moonMat));
+        master.moon = moon.representation;
 
         crater haworth =                  new crater("Haworth",                    new geographic(-86.7515237574502, -22.7749958363969), moon, new terrainFilesInfo("haworth",                    new List<Vector2Int>() {new Vector2Int(20, 1)}));
         crater amudsenRim =               new crater("Amundsen Rim",               new geographic(-84.227, 69.444),                      moon, new terrainFilesInfo("amundsen rim",               new List<Vector2Int>() {new Vector2Int(20, 1)}));
@@ -134,7 +135,7 @@ public class controller : MonoBehaviour {
             // using this timer method instead of WaitForSeconds as it is inaccurate for small numbers.
             yield return new WaitForEndOfFrame();
         }
-
         termination();
     }
+
 }
