@@ -338,6 +338,7 @@ public static class craterTerrainController
             general.camera.transform.localPosition = new Vector3(0, 0, -5);
             general.camera.transform.localEulerAngles = new Vector3(0, 0, 0);
             general.camera.transform.RotateAround(Vector3.zero, general.camera.transform.right, -150);
+            general.camera.fieldOfView = 60;
 
             foreach (crater c in master.registeredCraters)
             {
@@ -356,6 +357,7 @@ public static class craterTerrainController
             general.camera.transform.localPosition = new Vector3(0, 0, -5);
             general.camera.transform.localEulerAngles = Vector3.zero;
             general.bodyParent.transform.localEulerAngles = Vector3.zero;
+            general.camera.fieldOfView = 60;
 
             foreach (crater c in master.registeredCraters)
             {
