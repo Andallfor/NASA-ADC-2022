@@ -103,7 +103,7 @@ public class controller : MonoBehaviour {
         master.changeState(programStates.interplanetary);
 
         Coroutine mainClock = StartCoroutine(internalClock(3600, int.MaxValue, (tick) => {
-            //master.incrementTime(master.timestep);
+            master.incrementTime(master.timestep);
 
             master.propagateUpdate();
             
