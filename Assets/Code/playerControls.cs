@@ -141,7 +141,7 @@ internal class bodyRotationalControls {
             planetFocusMousePosition = Input.mousePosition;
             Vector2 adjustedDifference = new Vector2(-difference.y / Screen.height, difference.x / Screen.width) * 180f;
 
-            float percent = (float) master.scale / (1500000f / (float) master.scale);
+            float percent = general.camera.fieldOfView / 125f;
             if (master.currentState == programStates.planetaryTerrain) percent = 1;
             rotation.x = adjustedDifference.x * percent;
             rotation.y = adjustedDifference.y * percent;
@@ -169,31 +169,16 @@ internal class bodyRotationalControls {
         if (Input.mouseScrollDelta.y != 0) {
             if (master.currentState == programStates.interplanetary)
             {
-                change = (float) (6f*((Vector3.Distance(Vector3.zero,general.camera.transform.position)+ 0.005f - master.moon.transform.localScale.x/2)/2 *Mathf.Sign(Input.mouseScrollDelta.y)));
-                if (master.moon.transform.localScale.x > 7.5)
-                {
-
-                    if (general.camera.fieldOfView > 60)
-                    {
-                        master.scale -= change;
-                        general.camera.fieldOfView = 60;
-                    }
-                    else
-                    {
-                        general.camera.fieldOfView -= change/5;
-                    }
-                }
-                else
-                {
-                    master.scale -= change;
-                }
+                //change = (float) (6f*((Vector3.Distance(Vector3.zero,general.camera.transform.position)+ 0.005f - master.moon.transform.localScale.x/2)/2 *Mathf.Sign(Input.mouseScrollDelta.y)));
+                change = Input.mouseScrollDelta.y * general.camera.fieldOfView / 20f;
+                general.camera.fieldOfView -= change;
+                general.camera.fieldOfView = Mathf.Max(Mathf.Min(general.camera.fieldOfView, 60), 0.5f);
             }
-            
             else if(craterTerrainController.mode!=4)
             {
-                change = -(float)(0.01 * (master.scale)) * Mathf.Sign(Input.mouseScrollDelta.y);
-                master.scale -= change;
-
+                change = Input.mouseScrollDelta.y * general.camera.fieldOfView / 50f;
+                general.camera.fieldOfView -= change;
+                general.camera.fieldOfView = Mathf.Max(Mathf.Min(general.camera.fieldOfView, 90), 0.5f);
             }
 
             //master.scale -= change;
