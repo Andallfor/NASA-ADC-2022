@@ -57,6 +57,7 @@ public class controller : MonoBehaviour {
         //craterTerrainController.processRegion("regional", 20, 1);
 
         globalMeshGenerator.folder = "C:/Users/ltriv/Downloads/ADC Files/global/out";
+        //globalMeshGenerator.folder = "C:/Users/leozw/Desktop/ADC/global/out";
 
         master.onStateChange += craterTerrainController.onStateChange;
 
