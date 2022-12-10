@@ -130,8 +130,8 @@ public class Pathfind : MonoBehaviour
         {
             generateTexture();
             find(craterTerrainController.worldPosToNode(new Vector3(seeker.transform.position.z,0,seeker.transform.position.x*-1)), craterTerrainController.worldPosToNode(new Vector3(hider.transform.position.z , 0, hider.transform.position.x*-1)));
-            //byte[] bytes = generateTexture().EncodeToPNG();
-            //File.WriteAllBytes("C:/Users/ltriv/Downloads/texturetest.png", bytes);
+            byte[] bytes = generateTexture().EncodeToPNG();
+            File.WriteAllBytes("C:/Users/ltriv/Downloads/texturetest.png", bytes);
 
         }
 

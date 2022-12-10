@@ -1138,12 +1138,12 @@ MonoBehaviour:
     positionOffset: {x: 0, y: 0}
     angularOffset: 0
     translationScale: {x: 1, y: 1}
-    m_LocalIntensity: 0.05
+    m_LocalIntensity: 0.009
     lensFlareTexture: {fileID: 0}
     uniformScale: 1
     sizeXY: {x: 1, y: 1}
     allowMultipleElement: 1
-    m_Count: 11
+    m_Count: 5
     preserveAspectRatio: 0
     rotation: 0
     tint: {r: 1, g: 1, b: 1, a: 0.5}

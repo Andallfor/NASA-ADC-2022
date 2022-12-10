@@ -12,7 +12,7 @@ public static class master {
     public static body sun;
     /// <summary> The current object that is being focused by the program. Will be at (0, 0, 0) in 3D space (if <see cref="playerPosition"/> is (0, 0, 0)). </summary>
     public static body referenceFrameBody;
-    public static GameObject moon;
+    public static GameObject moon,canvas;
 
     #endregion BODIES
     #region CURRENT STATE

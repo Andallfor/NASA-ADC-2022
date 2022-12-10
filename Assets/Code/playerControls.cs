@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 public enum cameraModes
 {
@@ -10,22 +11,31 @@ public enum cameraModes
 /// <summary> The controls of the player. </summary>
 public class playerControls : MonoBehaviour {
     cameraModes m = cameraModes.typical;
-    private Vector3 seekerPos = new Vector3(1, 0, 0);
-    private Vector3 hiderPos = new Vector3(0, 0, 0);
+    public GameObject marker;
+    private Vector2 mpos;
     private Plane elevationPlane;
     private bool selected = false;
     private GameObject selectedObject = null;
     private int height = 0;
     private bodyRotationalControls bodyRotation;
     float times;
+    GameObject canvas;
     public void Awake() {
         bodyRotation = new bodyRotationalControls();
         elevationPlane = new Plane(Vector3.up, new Vector3(0, -height, 0));
         
+
+
+
     }
 
     void Update() {
+        /*if (master.currentState == programStates.planetaryTerrain)
+        {
+            mpos += new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+            marker.transform.position = new Vector3(mpos.x, (float)craterTerrainController.getNodeData(new Vector2Int((int)(craterTerrainController.craterData[craterTerrainController.region].map.width / craterTerrainController.worldSize.x * (mpos.x - craterTerrainController.worldSize.x)), (int)(craterTerrainController.craterData[craterTerrainController.region].map.height / craterTerrainController.worldSize.y * (mpos.y - craterTerrainController.worldSize.y))), craterTerrainController.region).height-(float)craterTerrainController.avg, mpos.y);
 
+        }*/
         if (!master.initialized) return;
         if (master.currentState == programStates.planetaryTerrain && Input.GetMouseButtonDown(0)&&selected==false)
         {
@@ -113,6 +123,10 @@ internal class bodyRotationalControls {
     private float change;
 
     public void update(cameraModes mode) {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            master.canvas.active = !master.canvas.active;
+        }
         if (master.currentState == programStates.planetaryTerrain&&Input.GetKeyDown(KeyCode.Alpha1)) { craterTerrainController.mode = 0; }
         if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha2)) { craterTerrainController.mode = 1; }
         if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha3)) { craterTerrainController.mode = 2; }
@@ -133,18 +147,24 @@ internal class bodyRotationalControls {
             rotation.y = adjustedDifference.y * percent;
             rotation.z = 0;
         }
-
-        if (Input.GetMouseButtonDown(1)) planetFocusMousePosition1 = Input.mousePosition;
-        if (Input.GetMouseButton(1)) {
-            Vector3 difference = Input.mousePosition - planetFocusMousePosition1;
-            planetFocusMousePosition1 = Input.mousePosition;
-
-            float adjustedDifference = (difference.x / Screen.width) * 100;
-            rotation.x = 0;
-            rotation.y = 0;
-            rotation.z = adjustedDifference;
+        if (Input.GetAxisRaw("Horizontal") != 0 && mode == cameraModes.typical)
+        {
+            rotation.y = Time.deltaTime * 1 * Input.GetAxisRaw("Horizontal");
         }
+        else
+        {
+            if (Input.GetMouseButtonDown(1)) planetFocusMousePosition1 = Input.mousePosition;
+            if (Input.GetMouseButton(1))
+            {
+                Vector3 difference = Input.mousePosition - planetFocusMousePosition1;
+                planetFocusMousePosition1 = Input.mousePosition;
 
+                float adjustedDifference = (difference.x / Screen.width) * 100;
+                rotation.x = 0;
+                rotation.y = 0;
+                rotation.z = adjustedDifference;
+            }
+        }
         // TODO -> have this scale based on screen size of planet, not some predefined ratio
         if (Input.mouseScrollDelta.y != 0) {
             if (master.currentState == programStates.interplanetary)
@@ -194,10 +214,12 @@ internal class bodyRotationalControls {
         }
         if(mode == cameraModes.drone)
         {
-            if(Input.GetMouseButton(0))general.camera.transform.eulerAngles += new Vector3(-Input.GetAxisRaw("Mouse Y"), Input.GetAxisRaw("Mouse X"), 0.0f);
-            general.camera.transform.position += .05f*Input.GetAxisRaw("Vertical")* general.camera.transform.forward+.05f * Input.GetAxisRaw("Horizontal") * general.camera.transform.right+0.0f*general.camera.transform.up;
+            if (Input.GetMouseButton(0)) { general.camera.transform.eulerAngles += new Vector3(-Input.GetAxisRaw("Mouse Y"), Input.GetAxisRaw("Mouse X"), 0.0f); }
+            
+            general.camera.transform.position += .05f*Input.GetAxisRaw("Vertical")* general.camera.transform.forward * Time.deltaTime * 5 + .05f * Input.GetAxisRaw("Horizontal") * general.camera.transform.right * Time.deltaTime * 5 + 0.0f*general.camera.transform.up;
             
         }
+        Cursor.visible = !Input.GetMouseButton(0);
 
         if (rotation.magnitude < 0.01f) rotation = Vector3.zero;
         else rotation = new Vector3(

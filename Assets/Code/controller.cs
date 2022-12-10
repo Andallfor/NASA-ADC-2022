@@ -40,6 +40,7 @@ public class controller : MonoBehaviour {
     public static planet moon;
 
     void Awake() {
+        master.canvas= GameObject.Find("Canvas");
         //terrain.processRegion("haworth", 20, 1); // TODO: 20 actually isnt big enough, some values are still cut off
         //terrain.processRegion("nobile rim 1", 20, 1);
         //terrain.processRegion("nobile rim 2", 20, 1);
@@ -55,7 +56,7 @@ public class controller : MonoBehaviour {
         //craterTerrainController.processRegion("leibnitz beta plateau", 20, 1);
         //craterTerrainController.processRegion("regional", 20, 1);
 
-        globalMeshGenerator.folder = "C:/Users/leozw/Desktop/ADC/global/out/";
+        globalMeshGenerator.folder = "C:/Users/ltriv/Downloads/ADC Files/global/out";
 
         master.onStateChange += craterTerrainController.onStateChange;
 
