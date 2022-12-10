@@ -14,20 +14,14 @@ public struct geographic {
     #region CONSTRUCTORS
     /// <summary> Takes lat lon values and clamps them to -90 to 90 and -180 to 180 respectively. </summary>
     /// <remarks> Note that 0-180 and 0-360 are very different than the current -90 to 90/-180 to 180 system- the conversion is not just a +range/2. </remarks>
-    public geographic(double lat, double lon, bool exclude90n = false) {
+    public geographic(double lat, double lon) {
         double mLat = Math.Abs(lat) % 90.0;
         double mLon = Math.Abs(lon) % 180.0;
 
         // wrap lat and lon if out of bounds
-        if (exclude90n) {
-            if (lat >= 90) this.lat = -90 + mLat;
-            else if (lat < -90) this.lat = 90 - mLat;
-            else this.lat = lat;
-        } else {
-            if (lat > 90) this.lat = -90 + mLat;
-            else if (lat < -90) this.lat = 90 - mLat;
-            else this.lat = lat;
-        }
+        if (lat > 90) this.lat = 90 - mLat;
+        else if (lat < -90) this.lat = -90 + mLat;
+        else this.lat = lat;
 
         if (lon >= 180) this.lon = -180 + mLon;
         else if (lon < -180) this.lon = 180 - mLon;

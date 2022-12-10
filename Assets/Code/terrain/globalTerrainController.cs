@@ -104,14 +104,18 @@ public class globalTerrainController {
         // TODO: dynamic resolution
         // currently assumes that size is 60 x 60
         geographic step = new geographic(60, 60);
+        double _lat = intersectionGeo.lat - intersectionGeo.lat % step.lat + step.lat / 2; // TODO: + step.lat / 2 due to centered on 30 not 0
+        if (_lat >= 90) _lat = 90 - step.lat;
         geographic start = new geographic(
-            intersectionGeo.lat - intersectionGeo.lat % step.lat + 30, // bc it is not centered on 0 but +30 (due to step size)
-            intersectionGeo.lon - intersectionGeo.lon % step.lon, true);
+            _lat,
+            intersectionGeo.lon - intersectionGeo.lon % step.lon);
 
         // start flood fill alg
         Queue<geographic> frontier = new Queue<geographic>(getNearbyTiles(start, step));
         HashSet<geographic> visited = new HashSet<geographic>() {start};
         HashSet<geographic> visible = new HashSet<geographic>();
+
+        Vector3 parentPos = general.getScreenPosition(parent.representation.transform.position);
 
         bool allOffscreen = false;
         while (!allOffscreen) {
@@ -119,11 +123,25 @@ public class globalTerrainController {
             HashSet<geographic> nextFrontier = new HashSet<geographic>();
             while (frontier.Count != 0) {
                 geographic ll = frontier.Dequeue();
-                
-                allOffscreen = false;
 
+                Vector3 v = general.getScreenPosition(parent.localGeoToUnityPos(ll + step  / 2, 0));
+
+                //if (v.z < 0 || v.z > parentPos.z) continue;
+
+                Vector3 a = general.getScreenPosition(parent.localGeoToUnityPos(ll, 0));
+                Vector3 b = general.getScreenPosition(parent.localGeoToUnityPos(ll + step, 0));
+
+                Rect r = new Rect(a.x, a.y, b.x - a.x, b.y - a.y);
+                Rect cam = new Rect(0, 0, Screen.width, Screen.height);
+
+                //if (!r.Overlaps(cam, true)) continue;
+
+                allOffscreen = false;
                 foreach (Vector2 dir in directions) {
-                    geographic next = new geographic(ll.lat + dir.x * step.lat, ll.lon + dir.y * step.lon, true);
+                    double lat = ll.lat + dir.x * step.lat;
+                    if (lat >= 90) continue;
+                    geographic next = new geographic(lat, ll.lon + dir.y * step.lon);
+                    
                     if (!visited.Contains(next) && !nextFrontier.Contains(next)) {
                         visited.Add(next);
                         nextFrontier.Add(next);

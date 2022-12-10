@@ -58,10 +58,12 @@ public static class globalMeshGenerator {
         Vector2[] uvs = new Vector2[len];
         for (int i = 0; i < len; i++) {
             int x = i % data.size.x;
-            int y = data.size.y - ((i - x) / data.size.x);
+            int y = data.size.y - ((i - x) / data.size.x) - 1;
             geographic p = new geographic(
                 data.offset.lat + (float) (data.start.y + y * data.res) / data.fileLengthY * data.stepSizeGeoY,
-                data.offset.lon + (float) (data.start.x + x * data.res) / data.fileLengthX * data.stepSizeGeoX, true);
+                data.offset.lon + (float) (data.start.x + x * data.res) / data.fileLengthX * data.stepSizeGeoX);
+            
+            
 
             position point = p.toCartesian(1737.1 - 32.767 + (float) data.data[i] / 1000f).swapAxis() / master.scale;
             verts[i] = (Vector3) point;
