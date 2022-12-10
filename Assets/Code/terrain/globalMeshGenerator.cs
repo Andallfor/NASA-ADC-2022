@@ -61,7 +61,7 @@ public static class globalMeshGenerator {
             int y = data.size.y - ((i - x) / data.size.x);
             geographic p = new geographic(
                 data.offset.lat + (float) (data.start.y + y * data.res) / data.fileLengthY * data.stepSizeGeoY,
-                data.offset.lon + (float) (data.start.x + x * data.res) / data.fileLengthX * data.stepSizeGeoX);
+                data.offset.lon + (float) (data.start.x + x * data.res) / data.fileLengthX * data.stepSizeGeoX, true);
 
             position point = p.toCartesian(1737.1 - 32.767 + (float) data.data[i] / 1000f).swapAxis() / master.scale;
             verts[i] = (Vector3) point;

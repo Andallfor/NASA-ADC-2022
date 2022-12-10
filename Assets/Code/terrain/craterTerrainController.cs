@@ -57,7 +57,7 @@ public static class craterTerrainController
         }
         File.WriteAllText(Path.Combine(pathToOutput, "data.json"), JsonConvert.SerializeObject(pos));
         File.WriteAllText(Path.Combine(output, region, "bounds.json"), JsonConvert.SerializeObject(regData.bounds));
-        //File.WriteAllBytes(Path.Combine(output, region, region.Trim() + "_map.png"), regData.map.EncodeToPNG());
+        File.WriteAllBytes(Path.Combine(output, region, region.Trim() + "_map.png"), regData.map.EncodeToPNG());
     }
 
     public static async void generate(string region, int resolution, int x, int y)

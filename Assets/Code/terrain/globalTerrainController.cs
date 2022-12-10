@@ -82,7 +82,7 @@ public class globalTerrainController {
         foreach (geographic g in desired) {
             globalTerrainInstance inst = new globalTerrainInstance(
                 parent.name, new Vector2Int((int) g.lon, (int) g.lat), new Vector2Int(0, 0), new Vector2Int(2000, 2000), 3, 3, true, parent.representation);
-            inst.generate(true, false, false);
+            inst.generate(true, true, true);
             aliveMeshes[g] = inst;
         }
     }
@@ -154,7 +154,6 @@ public class globalTerrainController {
         int res = 3;
         int pw = (int) Math.Pow(2, res);
         int length = (int) (1024 / pw);
-        //Texture2DArray texArr = new Texture2DArray(length * 60, length * 60, (360 / 60) * (180 / 60), TextureFormat.RGBA32, 0, true);
         for (int sx = -180; sx < 180; sx += 60) {
             for (int sy = -90; sy < 90; sy += 60) {
                 Vector2Int start = new Vector2Int(sx, sy);
@@ -278,9 +277,9 @@ public class globalTerrainInstance {
                 int indexN = y * tx + x;
                 int indexC = (y - sy) * wy + x - sx;
                 Vector3 c = normals[indexN];
-                cs[indexC].r = (byte) (255f * (c.x + 1f) / 2f);
-                cs[indexC].g = (byte) (255f * (c.y + 1f) / 2f);
-                cs[indexC].b = (byte) (255f * (c.z + 1f) / 2f);
+                cs[indexC].r = (byte) (255f * c.x);
+                cs[indexC].g = (byte) (255f * c.y);
+                cs[indexC].b = (byte) (255f * c.z);
                 cs[indexC].a = 255;
             }
         }

@@ -28,9 +28,8 @@ public struct geographic {
             else if (lat < -90) this.lat = 90 - mLat;
             else this.lat = lat;
         }
-        
 
-        if (lon > 180) this.lon = -180 + mLon;
+        if (lon >= 180) this.lon = -180 + mLon;
         else if (lon < -180) this.lon = 180 - mLon;
         else this.lon = lon;
     }
