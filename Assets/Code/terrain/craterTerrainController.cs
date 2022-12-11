@@ -21,6 +21,7 @@ public static class craterTerrainController
     public static List<Node> path=new List<Node>();
     private static Mesh m;
     public static Texture2D pathTexture;
+    public static Material craterMat;
 
 
     public static void processRegion(string region, int r, int n)
@@ -78,7 +79,7 @@ public static class craterTerrainController
             go.name = "terrain";
             go.transform.parent = general.bodyParent;
             go.transform.localPosition = Vector3.zero;
-
+            craterMat = go.GetComponent<MeshRenderer>().material;
             m = dmd.generate();
 
             m.RecalculateBounds();
@@ -126,6 +127,7 @@ public static class craterTerrainController
             mat.SetInt("_map", mode);
            
             mat.SetTexture("_mainTex", craterData[region].map);
+            mat.SetColor("_key1", new Color(0, 255, 0,255));
 
             // the meshes were saved with a master.scale of 1000, however the current scale may not match
             // adjust the scale of the meshes so that it matches master.scale

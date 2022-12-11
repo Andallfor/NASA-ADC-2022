@@ -97,6 +97,19 @@ public class controller : MonoBehaviour {
 
         new globalTerrainController(moon, true);
         //await globalTerrainController.generateNormalMaps(moon);
+        /*var d = globalMeshGenerator.requestGlobalTerrain("Luna", new Vector2Int(30, 45), new Vector2Int(0, 0), new Vector2Int(32000, 16000), 2, 4, false);
+        var dd = globalMeshGenerator.generateDecompData(d);
+        
+        Mesh m = new Mesh();
+        m.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+        m.vertices = dd.verts;
+        m.triangles = dd.tris;
+        m.uv = dd.uvs;
+        m.RecalculateNormals();
+        GameObject go = GameObject.Instantiate(general.defaultPrefab);
+        go.GetComponent<MeshRenderer>().sharedMaterial = (Material)Resources.Load("materials/globalTerrain");
+        go.GetComponent<MeshFilter>().sharedMesh = m;*/
+
 
         master.markInit();
 

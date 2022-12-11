@@ -12,6 +12,7 @@ public enum cameraModes
 public class playerControls : MonoBehaviour {
     cameraModes m = cameraModes.typical;
     public GameObject marker;
+    private bool colorblind,paused;
     private Vector2 mpos;
     private Plane elevationPlane;
     private bool selected = false;
@@ -36,6 +37,19 @@ public class playerControls : MonoBehaviour {
             marker.transform.position = new Vector3(mpos.x, (float)craterTerrainController.getNodeData(new Vector2Int((int)(craterTerrainController.craterData[craterTerrainController.region].map.width / craterTerrainController.worldSize.x * (mpos.x - craterTerrainController.worldSize.x)), (int)(craterTerrainController.craterData[craterTerrainController.region].map.height / craterTerrainController.worldSize.y * (mpos.y - craterTerrainController.worldSize.y))), craterTerrainController.region).height-(float)craterTerrainController.avg, mpos.y);
 
         }*/
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            if (paused)
+            {
+                master.timestep = .001f;
+                paused = false;
+            }
+            else if (!paused)
+            {
+                master.timestep = 0f;
+                paused = true;
+            }
+        }
         if (!master.initialized) return;
         if (master.currentState == programStates.planetaryTerrain && Input.GetMouseButtonDown(0)&&selected==false)
         {
