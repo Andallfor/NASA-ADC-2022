@@ -22,6 +22,7 @@ public static class craterTerrainController
     private static Mesh m;
     public static Texture2D pathTexture;
     public static Material craterMat;
+    private static GameObject go;
 
 
     public static void processRegion(string region, int r, int n)
@@ -60,7 +61,13 @@ public static class craterTerrainController
         File.WriteAllText(Path.Combine(output, region, "bounds.json"), JsonConvert.SerializeObject(regData.bounds));
         File.WriteAllBytes(Path.Combine(output, region, region.Trim() + "_map.png"), regData.map.EncodeToPNG());
     }
-
+    public static void recalculateWorldSize()
+    {
+        
+        Mesh m = go.GetComponent<MeshFilter>().sharedMesh;
+        worldSize = new Vector2(m.bounds.size.x * go.transform.localScale.x, m.bounds.size.z * go.transform.localScale.z);
+        Debug.Log(worldSize);
+    }
     public static async void generate(string region, int resolution, int x, int y)
     {
 
@@ -75,7 +82,7 @@ public static class craterTerrainController
 
         UnityMainThreadDispatcher.Instance().Enqueue(() =>
         {
-            GameObject go = GameObject.Instantiate(general.craterTerrainPrefab);
+            go = GameObject.Instantiate(general.craterTerrainPrefab);
             go.name = "terrain";
             go.transform.parent = general.bodyParent;
             if (currentCrater.name == "regional")

@@ -203,13 +203,16 @@ internal class bodyRotationalControls {
         if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha5)) { craterTerrainController.mode = 4; master.scale = 4; updateScaleMap.hide();}
         if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha7)) { craterTerrainController.mode = 5; updateScaleMap.hide();}
         craterTerrainController.colorUpdate();
-
+        
+        
         if (!inFirstPerson) {
             if (Input.GetKeyDown("e")) {
+
                 inFirstPerson = true;
                 foreach (var m in craterTerrainController.activeMeshes) {
                     m.AddComponent<MeshCollider>();
                     m.transform.localScale = new Vector3(5000, 5000, 5000);
+                    
                     m.transform.localEulerAngles = new Vector3(180, 0, 0);
                 }
 

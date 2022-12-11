@@ -33,6 +33,7 @@ public static class general {
     public static Canvas canvas = GameObject.FindGameObjectWithTag("canvas").GetComponent<Canvas>();
     /// <summary> The main camera in the scene. Use this instead of Camera.main, as it is much more efficient. </summary>
     public static Camera camera = Camera.main;
+    public static GameObject minimapCam;
     #endregion
 
     #region TERRAIN
