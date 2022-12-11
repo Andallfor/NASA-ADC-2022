@@ -121,6 +121,7 @@ public static class craterTerrainController
             m.uv = uvs;
 
             go.GetComponent<MeshFilter>().mesh = m;
+            go.AddComponent<MeshCollider>();
             Material mat = go.GetComponent<MeshRenderer>().sharedMaterial;
             mode = 0;
 
@@ -155,9 +156,9 @@ public static class craterTerrainController
     }
     public static void generateGrid(string region)
     {
-        
+        Texture2D tex = Resources.Load<Texture2D>("maps/vis/" + currentCrater.name);
         float meshSize = craterData[region].map.width;
-        float increment = 4000 / gridSizeX;
+        float increment = 4096 / gridSizeX;
         bool walkable = true;
         for (int x = 0; x < gridSizeX; x++)
         {
@@ -182,8 +183,13 @@ public static class craterTerrainController
                 }
                 */
                 if (getNodeData(new Vector2Int((int)startx, (int)starty), region).slope > 20) walkable = false;
+                bool isVis = tex.GetPixel(
+                    (int) (200f * ((float) x / (float) gridSizeX)),
+                    (int) (200f * ((float) y / (float) gridSizeY)))
+                    == Color.green;
+
                 // TODO add vis data here
-                grid[x, y] = new Node(walkable, worldPoint, x, y);
+                grid[x, y] = new Node(walkable, worldPoint, x, y, isVis);
             }
         }
     }

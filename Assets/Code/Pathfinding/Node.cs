@@ -5,16 +5,17 @@ using UnityEngine;
 public class Node
 {
     public Vector3 worldPos;
-    public bool walkable;
+    public bool walkable, isVis;
     public int hcost, gcost, gridX, gridY;
     public Node parent;
 
-    public Node(bool walkable_, Vector3 worldPos_, int gridX_, int gridY_)
+    public Node(bool walkable_, Vector3 worldPos_, int gridX_, int gridY_, bool isVis)
     {
         this.walkable = walkable_;
         this.worldPos = worldPos_;
         this.gridY = gridY_;
         this.gridX = gridX_;
+        this.isVis = isVis;
     }
     public int fcost
     {
@@ -29,11 +30,13 @@ public struct ComLinkNode {
     public int dist;
     public Vector2Int pos;
     public Node n;
+    public bool isVis;
 
-    public ComLinkNode(Vector2Int pos, int dist, Node n) {
+    public ComLinkNode(Vector2Int pos, int dist, Node n, bool isVis) {
         this.pos = pos;
         this.dist = dist;
         this.n = n;
+        this.isVis = isVis;
     }
 
     public override int GetHashCode() {
