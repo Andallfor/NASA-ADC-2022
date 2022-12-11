@@ -121,12 +121,20 @@ public static class craterTerrainController
             m.uv = uvs;
 
             go.GetComponent<MeshFilter>().mesh = m;
-
             Material mat = go.GetComponent<MeshRenderer>().sharedMaterial;
+            mode = 0;
+
+            mat.shader = Shader.Find("Custom/mapShader");
 
             mat.SetInt("_map", mode);
-           
+
             mat.SetTexture("_mainTex", craterData[region].map);
+            
+            
+            mat.shader = Shader.Find("Universal Render Pipeline/Simple Lit");
+            mat.SetColor("_BaseColor", new Color(82 / 255f, 78 / 255f, 78 / 255f, 1));
+                
+            
             //mat.SetColor("_key1", new Color(0, 255, 0,255));
 
             // the meshes were saved with a master.scale of 1000, however the current scale may not match
@@ -280,7 +288,7 @@ public static class craterTerrainController
         foreach (GameObject go in activeMeshes)
         {
             Material mat = go.GetComponent<MeshRenderer>().sharedMaterial;
-            if (mode != 4)
+            if (mode != 4&&mode!=5)
             {
                 
                 mat.shader = Shader.Find("Custom/mapShader");
@@ -292,6 +300,11 @@ public static class craterTerrainController
                 
                 mat.shader = Shader.Find("Unlit/Texture");
                 mat.SetTexture("_MainTex", pathTexture);
+            }
+            if (mode == 5)
+            {
+                mat.shader = Shader.Find("Universal Render Pipeline/Simple Lit");
+                mat.SetColor("_BaseColor", new Color(82 / 255f, 78 / 255f, 78 / 255f, 1));
             }
         }
         

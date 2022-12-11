@@ -11,7 +11,7 @@ public enum cameraModes
 /// <summary> The controls of the player. </summary>
 public class playerControls : MonoBehaviour {
     cameraModes m = cameraModes.typical;
-    public GameObject marker, player;
+    public GameObject marker, player,seeker,hider;
     private bool colorblind,paused;
     private Vector2 mpos;
     private Plane elevationPlane;
@@ -22,6 +22,8 @@ public class playerControls : MonoBehaviour {
     float times;
     GameObject canvas;
     public void Awake() {
+        seeker = GameObject.FindGameObjectWithTag("seeker");
+        hider = GameObject.FindGameObjectWithTag("hider");
         bodyRotation = new bodyRotationalControls();
         elevationPlane = new Plane(Vector3.up, new Vector3(0, -height, 0));
         
@@ -73,6 +75,7 @@ public class playerControls : MonoBehaviour {
 
             }
         }
+        
         if (!master.initialized) return;
         if (master.currentState == programStates.planetaryTerrain && Input.GetMouseButtonDown(0)&&selected==false)
         {
@@ -81,16 +84,19 @@ public class playerControls : MonoBehaviour {
             Ray ray = general.camera.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out hit))
             {
-                if (hit.collider == GameObject.FindGameObjectWithTag("seeker").GetComponent<CapsuleCollider>())
+                if (hit.collider != null)
                 {
-                    selected = true;
-                    selectedObject = GameObject.FindGameObjectWithTag("seeker");
+                    if (hit.collider == seeker.GetComponent<CapsuleCollider>())
+                    {
+                        selected = true;
+                        selectedObject = seeker;
 
-                }
-                else if(hit.collider == GameObject.FindGameObjectWithTag("hider").GetComponent<CapsuleCollider>())
-                {
-                    selected = true;
-                    selectedObject = GameObject.FindGameObjectWithTag("hider");
+                    }
+                    else if (hit.collider == hider.GetComponent<CapsuleCollider>())
+                    {
+                        selected = true;
+                        selectedObject = hider;
+                    }
                 }
             }
         }
@@ -172,6 +178,7 @@ internal class bodyRotationalControls {
         if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha3)) { craterTerrainController.mode = 2; }
         if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha4)) { craterTerrainController.mode = 3; }
         if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha5)) { craterTerrainController.mode = 4; master.scale = 4; }
+        if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha7)) { craterTerrainController.mode = 5; }
         craterTerrainController.colorUpdate();
 
         if (!inFirstPerson) {
