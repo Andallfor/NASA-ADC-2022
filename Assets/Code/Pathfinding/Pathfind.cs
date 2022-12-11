@@ -195,8 +195,7 @@ public class Pathfind : MonoBehaviour
             go.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
             go.name = bestPos[i].ToString();
 
-            go.transform.position = craterTerrainController.grid[bestPos[i].x, bestPos[i].y].worldPos;
-
+            go.transform.position = new Vector3(craterTerrainController.grid[bestPos[i].x, bestPos[i].y].worldPos.z*-1f,0, craterTerrainController.grid[bestPos[i].x, bestPos[i].y].worldPos.x);
             previousLinks.Add(go);
         }
     }
