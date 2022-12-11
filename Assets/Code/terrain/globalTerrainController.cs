@@ -295,9 +295,9 @@ public class globalTerrainInstance {
                 int indexN = y * tx + x;
                 int indexC = (y - sy) * wy + x - sx;
                 Vector3 c = normals[indexN];
-                cs[indexC].r = (byte) (255f * c.x);
-                cs[indexC].g = (byte) (255f * c.y);
-                cs[indexC].b = (byte) (255f * c.z);
+                cs[indexC].r = (byte) (255f * (c.x + 1f) / 2f);
+                cs[indexC].g = (byte) (255f * (c.y + 1f) / 2f);
+                cs[indexC].b = (byte) (255f * (c.z + 1f) / 2f);
                 cs[indexC].a = 255;
             }
         }

@@ -8,6 +8,8 @@ TagManager:
   - canvas
   - ui/labels
   - light/sunlight
+  - seeker
+  - hider
   layers:
   - Default
   - TransparentFX
