@@ -53,6 +53,7 @@ public class Pathfind : MonoBehaviour
     public Texture2D generateTexture()
     {
         Texture2D tex = new Texture2D(craterTerrainController.gridSizeX, craterTerrainController.gridSizeY);
+        tex.filterMode = FilterMode.Point;
         Color[] colors = new Color[craterTerrainController.gridSizeX * craterTerrainController.gridSizeY];
         foreach (Node i in craterTerrainController.grid)
         {
@@ -71,18 +72,11 @@ public class Pathfind : MonoBehaviour
                 colors[i.gridX * craterTerrainController.gridSizeY + i.gridY] = Color.red;
             }
 */
-            if (craterTerrainController.path.Contains(i))
-            {
-                tex.SetPixel(i.gridY, i.gridX, Color.blue);
-            }
-            else if (i.walkable == true)
-            {
-                tex.SetPixel(i.gridY, i.gridX, Color.green);
-            }
-            else
-            {
-                tex.SetPixel(i.gridY, i.gridX, Color.red);
-            }
+            if (craterTerrainController.path.Contains(i)) tex.SetPixel(i.gridY, i.gridX, Color.blue);
+            else if (i.walkable && i.isVis) tex.SetPixel(i.gridY, i.gridX, Color.green);
+            else if (!i.walkable && i.isVis) tex.SetPixel(i.gridY, i.gridX, Color.cyan);
+            else if (i.walkable && !i.isVis) tex.SetPixel(i.gridY, i.gridX, Color.gray);
+            else tex.SetPixel(i.gridY, i.gridX, Color.red);
 
         }
         //tex.SetPixels(colors);
@@ -126,10 +120,10 @@ public class Pathfind : MonoBehaviour
         hider.SetActive(master.currentState == programStates.planetaryTerrain && craterTerrainController.mode == 4);
         if (Input.GetKeyDown(KeyCode.Return) && master.currentState == programStates.planetaryTerrain)
         {
-            generateTexture();
             find(craterTerrainController.worldPosToNode(new Vector3(seeker.transform.position.z, 0, seeker.transform.position.x * -1)), craterTerrainController.worldPosToNode(new Vector3(hider.transform.position.z, 0, hider.transform.position.x * -1)));
-            byte[] bytes = generateTexture().EncodeToPNG();
-            if (general.host == "ltriv") File.WriteAllBytes("C:/Users/ltriv/Downloads/texturetest.png", bytes);
+            generateTexture();
+            //byte[] bytes = generateTexture().EncodeToPNG();
+            //if (general.host == "ltriv") File.WriteAllBytes("C:/Users/ltriv/Downloads/texturetest.png", bytes);
 
             generateComLinks(8);
         }
@@ -141,8 +135,9 @@ public class Pathfind : MonoBehaviour
         // get list of all possible com link positions
         Queue<ComLinkNode> nodes = new Queue<ComLinkNode>();
         Dictionary<Vector2Int, ComLinkNode> visited = new Dictionary<Vector2Int, ComLinkNode>();
+        List<ComLinkNode> good = new List<ComLinkNode>();
         foreach (Node n in craterTerrainController.path) {
-            ComLinkNode cn = new ComLinkNode(new Vector2Int(n.gridX, n.gridY), 0, n);
+            ComLinkNode cn = new ComLinkNode(new Vector2Int(n.gridX, n.gridY), 0, n, n.isVis);
             visited.Add(cn.pos, cn);
             nodes.Enqueue(cn);
         }
@@ -156,12 +151,13 @@ public class Pathfind : MonoBehaviour
                 ComLinkNode n = nodes.Dequeue();
                 visited[n.pos] = n;
 
+                if (n.isVis) good.Add(n);
+
                 List<Node> neighbors = craterTerrainController.getNeighbors(n.n);
                 foreach (Node nn in neighbors) {
-                    if (!nn.walkable) continue;
-                    ComLinkNode cn = new ComLinkNode(new Vector2Int(nn.gridX, nn.gridY), dist + 1, nn);
-                    bool visible = UnityEngine.Random.Range(0, 10) == 5;
-                    if (!visited.ContainsKey(cn.pos) && visible) frontier.Enqueue(cn); // TODO: add visibility check
+                    if (!nn.walkable || !nn.isVis) continue;
+                    ComLinkNode cn = new ComLinkNode(new Vector2Int(nn.gridX, nn.gridY), dist + 1, nn, n.isVis);
+                    if (!visited.ContainsKey(cn.pos)) frontier.Enqueue(cn);
                 }
             }
 
@@ -176,7 +172,7 @@ public class Pathfind : MonoBehaviour
 
             float bestScore = 10000000;
             ComLinkNode? bestNode = null;
-            foreach (ComLinkNode cn in visited.Values) {
+            foreach (ComLinkNode cn in good) {
                 float score = cn.dist * 3 + Vector2.Distance(cn.pos, new Vector2(n.gridX, n.gridY)); // + what ever other modifier you want
                 float distToOtherNodes = 0;
 
@@ -191,11 +187,20 @@ public class Pathfind : MonoBehaviour
             }
 
             bestPos[i] = (bestNode.HasValue) ? ((ComLinkNode) bestNode).pos : Vector2Int.zero;
-            GameObject go = GameObject.Instantiate(general.defaultPrefab);
-            go.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-            go.name = bestPos[i].ToString();
 
-            go.transform.position = new Vector3(craterTerrainController.grid[bestPos[i].x, bestPos[i].y].worldPos.z*-1f,0, craterTerrainController.grid[bestPos[i].x, bestPos[i].y].worldPos.x);
+            Vector3 v = craterTerrainController.grid[bestPos[i].x, bestPos[i].y].worldPos;
+            Vector3 pos =  new Vector3(v.z*-1f, -100, v.x);
+
+            RaycastHit rh;
+            Ray r = new Ray(pos, Vector3.up);
+            Debug.DrawRay(r.origin, r.direction * 200, Color.red, 1000);
+            Physics.Raycast(r, out rh, 200, 1 << 7);
+
+            GameObject go = GameObject.Instantiate(Resources.Load<GameObject>("prefabs/adc_Solstice_2"));
+            go.transform.eulerAngles = new Vector3(180, 0, 0);
+            go.name = bestPos[i].ToString();
+            go.transform.position = rh.point - new Vector3(0, 0.11f, 0);
+            
             previousLinks.Add(go);
         }
     }
