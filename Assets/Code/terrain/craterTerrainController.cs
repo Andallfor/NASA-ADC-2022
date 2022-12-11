@@ -127,7 +127,7 @@ public static class craterTerrainController
             mat.SetInt("_map", mode);
            
             mat.SetTexture("_mainTex", craterData[region].map);
-            mat.SetColor("_key1", new Color(0, 255, 0,255));
+            //mat.SetColor("_key1", new Color(0, 255, 0,255));
 
             // the meshes were saved with a master.scale of 1000, however the current scale may not match
             // adjust the scale of the meshes so that it matches master.scale
@@ -173,7 +173,7 @@ public static class craterTerrainController
                     startx += 1;
                 }
                 */
-                if (getNodeData(new Vector2Int((int)startx, (int)starty), region).slope > 15) walkable = false;
+                if (getNodeData(new Vector2Int((int)startx, (int)starty), region).slope > 20) walkable = false;
                 grid[x, y] = new Node(walkable, worldPoint, x, y);
             }
         }

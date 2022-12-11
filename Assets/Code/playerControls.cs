@@ -50,6 +50,31 @@ public class playerControls : MonoBehaviour {
                 paused = true;
             }
         }
+        if (Input.GetKeyDown(KeyCode.Alpha6)) colorblind = !colorblind;
+        if (craterTerrainController.craterMat != null)
+        {
+            Material crater = craterTerrainController.craterMat;
+            if (colorblind)
+            {
+                crater.SetColor("_key1",new Color(100/255f,143/255f,255/255f,1));
+                crater.SetColor("_key2",new Color(120/255f,94/255f,240/255f,1));
+                crater.SetColor("_key3",new Color(220/255f,38/255f,127/255f,1));
+                crater.SetColor("_key4",new Color(254/255f,97/255f,0,1));
+                crater.SetColor("_key5",new Color(255/255f,176/255f,0,1));
+
+            }
+            else
+            {
+                crater.SetColor("_key5", new Color(252/255f,253/255f,191/255f));
+                crater.SetColor("_key4", new Color(252/255f,137/255f,97/255f));
+                crater.SetColor("_key3", new Color(183/255f,55/255f,121/255f));
+                crater.SetColor("_key2", new Color(81/255f,18/255f,124/255f));
+                crater.SetColor("_key1", new Color(0,0,4/255f));
+/*                crater.SetColor("_key5", new Color(0,0,4));
+*/                
+
+            }
+        }
         if (!master.initialized) return;
         if (master.currentState == programStates.planetaryTerrain && Input.GetMouseButtonDown(0)&&selected==false)
         {
