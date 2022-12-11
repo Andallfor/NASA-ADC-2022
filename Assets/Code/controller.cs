@@ -56,8 +56,8 @@ public class controller : MonoBehaviour {
         //craterTerrainController.processRegion("leibnitz beta plateau", 20, 1);
         //craterTerrainController.processRegion("regional", 20, 1);
 
-        globalMeshGenerator.folder = "C:/Users/ltriv/Downloads/ADC Files/global/out";
-        //globalMeshGenerator.folder = "C:/Users/leozw/Desktop/ADC/global/out";
+        //globalMeshGenerator.folder = "C:/Users/ltriv/Downloads/ADC Files/global/out";
+        globalMeshGenerator.folder = "C:/Users/leozw/Desktop/ADC/global/out";
 
         master.onStateChange += craterTerrainController.onStateChange;
 
@@ -111,6 +111,9 @@ public class controller : MonoBehaviour {
         go.GetComponent<MeshRenderer>().sharedMaterial = (Material)Resources.Load("materials/globalTerrain");
         go.GetComponent<MeshFilter>().sharedMesh = m;*/
 
+
+        var d = globalMeshGenerator.requestGlobalTerrain("Luna", new Vector2Int(30, 45), new Vector2Int(0, 0), new Vector2Int(32000, 16000), 2, 4, false);
+        var dd = globalMeshGenerator.generateDecompData(d);
 
         master.markInit();
 

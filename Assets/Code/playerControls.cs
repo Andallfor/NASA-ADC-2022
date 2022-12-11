@@ -11,7 +11,7 @@ public enum cameraModes
 /// <summary> The controls of the player. </summary>
 public class playerControls : MonoBehaviour {
     cameraModes m = cameraModes.typical;
-    public GameObject marker;
+    public GameObject marker, player;
     private bool colorblind,paused;
     private Vector2 mpos;
     private Plane elevationPlane;
@@ -25,9 +25,7 @@ public class playerControls : MonoBehaviour {
         bodyRotation = new bodyRotationalControls();
         elevationPlane = new Plane(Vector3.up, new Vector3(0, -height, 0));
         
-
-
-
+        bodyRotation.player = player;
     }
 
     void Update() {
@@ -58,16 +56,16 @@ public class playerControls : MonoBehaviour {
             Ray ray = general.camera.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out hit))
             {
-                if (hit.collider == GameObject.Find("seeker").GetComponent<Collider>())
+                if (hit.collider == GameObject.FindGameObjectWithTag("seeker").GetComponent<CapsuleCollider>())
                 {
                     selected = true;
-                    selectedObject = GameObject.Find("seeker");
+                    selectedObject = GameObject.FindGameObjectWithTag("seeker");
 
                 }
-                else if(hit.collider == GameObject.Find("hider").GetComponent<Collider>())
+                else if(hit.collider == GameObject.FindGameObjectWithTag("hider").GetComponent<CapsuleCollider>())
                 {
                     selected = true;
-                    selectedObject = GameObject.Find("hider");
+                    selectedObject = GameObject.FindGameObjectWithTag("hider");
                 }
             }
         }
@@ -135,6 +133,9 @@ internal class bodyRotationalControls {
     
     private Vector3 planetFocusMousePosition, planetFocusMousePosition1, rotation;
     private float change;
+    private bool inFirstPerson;
+
+    public GameObject player;
 
     public void update(cameraModes mode) {
         if (Input.GetKeyDown(KeyCode.Space))
@@ -146,84 +147,159 @@ internal class bodyRotationalControls {
         if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha3)) { craterTerrainController.mode = 2; }
         if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha4)) { craterTerrainController.mode = 3; }
         if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha5)) { craterTerrainController.mode = 4; master.scale = 4; }
-        
-        
         craterTerrainController.colorUpdate();
-        if (Input.GetMouseButtonDown(0)) planetFocusMousePosition = Input.mousePosition;
-        else if (Input.GetMouseButton(0)) {
-            Vector3 difference = Input.mousePosition - planetFocusMousePosition;
-            planetFocusMousePosition = Input.mousePosition;
-            Vector2 adjustedDifference = new Vector2(-difference.y / Screen.height, difference.x / Screen.width) * 180f;
 
-            float percent = general.camera.fieldOfView / 125f;
-            if (master.currentState == programStates.planetaryTerrain) percent = 1;
-            rotation.x = adjustedDifference.x * percent;
-            rotation.y = adjustedDifference.y * percent;
-            rotation.z = 0;
-        }
-        if (Input.GetAxisRaw("Horizontal") != 0 && mode == cameraModes.typical)
-        {
-            rotation.y = Time.deltaTime * 1 * Input.GetAxisRaw("Horizontal");
-        }
-        else
-        {
-            if (Input.GetMouseButtonDown(1)) planetFocusMousePosition1 = Input.mousePosition;
-            if (Input.GetMouseButton(1))
-            {
-                Vector3 difference = Input.mousePosition - planetFocusMousePosition1;
-                planetFocusMousePosition1 = Input.mousePosition;
+        if (!inFirstPerson) {
+            if (Input.GetKeyDown("e")) {
+                inFirstPerson = true;
+                foreach (var m in craterTerrainController.activeMeshes) {
+                    m.AddComponent<MeshCollider>();
+                    m.transform.localScale = new Vector3(5000, 5000, 5000);
+                    m.transform.localEulerAngles = new Vector3(180, 0, 0);
+                }
 
-                float adjustedDifference = (difference.x / Screen.width) * 100;
-                rotation.x = 0;
-                rotation.y = 0;
-                rotation.z = adjustedDifference;
-            }
-        }
-        // TODO -> have this scale based on screen size of planet, not some predefined ratio
-        if (Input.mouseScrollDelta.y != 0) {
-            if (master.currentState == programStates.interplanetary)
-            {
-                //change = (float) (6f*((Vector3.Distance(Vector3.zero,general.camera.transform.position)+ 0.005f - master.moon.transform.localScale.x/2)/2 *Mathf.Sign(Input.mouseScrollDelta.y)));
-                change = Input.mouseScrollDelta.y * general.camera.fieldOfView / 20f;
-                general.camera.fieldOfView -= change;
-                general.camera.fieldOfView = Mathf.Max(Mathf.Min(general.camera.fieldOfView, 60), 0.5f);
-            }
-            else if(craterTerrainController.mode!=4)
-            {
-                change = Input.mouseScrollDelta.y * general.camera.fieldOfView / 50f;
-                general.camera.fieldOfView -= change;
-                general.camera.fieldOfView = Mathf.Max(Mathf.Min(general.camera.fieldOfView, 90), 0.5f);
+                cc = player.GetComponent<CharacterController>();
+
+                player.SetActive(true);
+                player.transform.position = new Vector3(0, 10, 0);
+
+                playerSpeed = 2;
+                gravityValue = -9.18f;
+                mX = 0;
+                mY = 0;
+                Cursor.lockState = CursorLockMode.Locked;
             }
 
-            //master.scale -= change;
+            if (Input.GetMouseButtonDown(0)) planetFocusMousePosition = Input.mousePosition;
+            else if (Input.GetMouseButton(0)) {
+                Vector3 difference = Input.mousePosition - planetFocusMousePosition;
+                planetFocusMousePosition = Input.mousePosition;
+                Vector2 adjustedDifference = new Vector2(-difference.y / Screen.height, difference.x / Screen.width) * 180f;
 
-            if (1737.4f/(master.scale-change) < Vector3.Distance(Vector3.zero, general.camera.transform.position))
+                float percent = general.camera.fieldOfView / 125f;
+                if (master.currentState == programStates.planetaryTerrain) percent = 1;
+                rotation.x = adjustedDifference.x * percent;
+                rotation.y = adjustedDifference.y * percent;
+                rotation.z = 0;
+            }
+            if (Input.GetAxisRaw("Horizontal") != 0 && mode == cameraModes.typical)
             {
-               
+                rotation.y = Time.deltaTime * 1 * Input.GetAxisRaw("Horizontal");
+            }
+            else
+            {
+                if (Input.GetMouseButtonDown(1)) planetFocusMousePosition1 = Input.mousePosition;
+                if (Input.GetMouseButton(1))
+                {
+                    Vector3 difference = Input.mousePosition - planetFocusMousePosition1;
+                    planetFocusMousePosition1 = Input.mousePosition;
+
+                    float adjustedDifference = (difference.x / Screen.width) * 100;
+                    rotation.x = 0;
+                    rotation.y = 0;
+                    rotation.z = adjustedDifference;
+                }
+            }
+            // TODO -> have this scale based on screen size of planet, not some predefined ratio
+            if (Input.mouseScrollDelta.y != 0) {
+                if (master.currentState == programStates.interplanetary)
+                {
+                    //change = (float) (6f*((Vector3.Distance(Vector3.zero,general.camera.transform.position)+ 0.005f - master.moon.transform.localScale.x/2)/2 *Mathf.Sign(Input.mouseScrollDelta.y)));
+                    change = Input.mouseScrollDelta.y * general.camera.fieldOfView / 20f;
+                    general.camera.fieldOfView -= change;
+                    general.camera.fieldOfView = Mathf.Max(Mathf.Min(general.camera.fieldOfView, 60), 0.5f);
+                }
+                else if(craterTerrainController.mode!=4)
+                {
+                    change = Input.mouseScrollDelta.y * general.camera.fieldOfView / 50f;
+                    general.camera.fieldOfView -= change;
+                    general.camera.fieldOfView = Mathf.Max(Mathf.Min(general.camera.fieldOfView, 90), 0.5f);
+                }
+
+                //master.scale -= change;
+
+                if (1737.4f/(master.scale-change) < Vector3.Distance(Vector3.zero, general.camera.transform.position))
+                {
+                
+                }
+            }
+            
+            if (mode == cameraModes.typical)
+            {
+                
+                general.camera.transform.RotateAround(Vector3.zero, general.camera.transform.right, rotation.x);
+                general.camera.transform.RotateAround(Vector3.zero, general.camera.transform.up, rotation.y);
+                general.camera.transform.rotation *= Quaternion.AngleAxis(rotation.z, Vector3.forward);
+                
+            }
+            if(mode == cameraModes.drone)
+            {
+                if (Input.GetMouseButton(0)) { general.camera.transform.eulerAngles += new Vector3(-Input.GetAxisRaw("Mouse Y"), Input.GetAxisRaw("Mouse X"), 0.0f); }
+                
+                general.camera.transform.position += .05f*Input.GetAxisRaw("Vertical")* general.camera.transform.forward * Time.deltaTime * 5 + .05f * Input.GetAxisRaw("Horizontal") * general.camera.transform.right * Time.deltaTime * 5 + 0.0f*general.camera.transform.up;
+                
+            }
+            Cursor.visible = !Input.GetMouseButton(0);
+
+            if (rotation.magnitude < 0.01f) rotation = Vector3.zero;
+            else rotation = new Vector3(
+                rotation.x * Mathf.Pow(0.05f, Time.deltaTime),
+                rotation.y * Mathf.Pow(0.05f, Time.deltaTime),
+                rotation.z * Mathf.Pow(0.05f, Time.deltaTime));
+        } 
+        else {
+            if (Cursor.lockState == CursorLockMode.Locked) {
+                mY -= Input.GetAxis("Mouse Y") * 500 * Time.deltaTime;
+                mY = Mathf.Clamp(mY, -80, 80);
+                mX += Input.GetAxis("Mouse X") * 500 * Time.deltaTime;
+                general.camera.transform.localEulerAngles = new Vector3(mY, mX, 0);
+
+                player.transform.eulerAngles = new Vector3(0, general.camera.transform.eulerAngles.y, 0);
+            }
+
+            general.camera.transform.position = player.transform.position + new Vector3(0, 0.5f, 0);
+            // https://docs.unity3d.com/ScriptReference/CharacterController.Move.html
+
+            if (cc.isGrounded) playerVelocity.y = 0;
+
+            if (Input.GetKey("w")) cc.Move(player.transform.forward * Time.deltaTime * playerSpeed);
+            if (Input.GetKey("s")) cc.Move(-player.transform.forward * Time.deltaTime * playerSpeed);
+            if (Input.GetKey("d")) cc.Move(player.transform.right * Time.deltaTime * playerSpeed);
+            if (Input.GetKey("a")) cc.Move(-player.transform.right * Time.deltaTime * playerSpeed);
+
+            if (Input.GetKeyDown("q")) Cursor.lockState = (Cursor.lockState == CursorLockMode.Locked) ? CursorLockMode.None : CursorLockMode.Locked;
+
+            playerVelocity.y += gravityValue * Time.deltaTime;
+            cc.Move(playerVelocity * Time.deltaTime);
+            
+            if (Input.GetKeyDown("e")) {
+                inFirstPerson = false;
+
+                player.transform.position = new Vector3(0, 10, 0);
+                player.SetActive(false);
+
+                Cursor.lockState = CursorLockMode.None;
+
+                master.playerPosition = craterTerrainController.currentCrater.parent.rotateLocalGeo(craterTerrainController.currentCrater.geo, 10).swapAxis();
+
+                foreach (var m in craterTerrainController.activeMeshes) {
+                    m.AddComponent<MeshCollider>();
+                    m.transform.localScale = new Vector3(250, 250, 250);
+                    m.transform.localEulerAngles = new Vector3(0, 0, 0);
+                }
+
+                general.camera.transform.localPosition = new Vector3(0, 0, -5);
+                general.camera.transform.localEulerAngles = new Vector3(0, 0, 0);
+                general.camera.transform.RotateAround(Vector3.zero, general.camera.transform.right, -150);
+                general.camera.fieldOfView = 60;
             }
         }
-        
-        if (mode == cameraModes.typical)
-        {
-            
-            general.camera.transform.RotateAround(Vector3.zero, general.camera.transform.right, rotation.x);
-            general.camera.transform.RotateAround(Vector3.zero, general.camera.transform.up, rotation.y);
-            general.camera.transform.rotation *= Quaternion.AngleAxis(rotation.z, Vector3.forward);
-            
-        }
-        if(mode == cameraModes.drone)
-        {
-            if (Input.GetMouseButton(0)) { general.camera.transform.eulerAngles += new Vector3(-Input.GetAxisRaw("Mouse Y"), Input.GetAxisRaw("Mouse X"), 0.0f); }
-            
-            general.camera.transform.position += .05f*Input.GetAxisRaw("Vertical")* general.camera.transform.forward * Time.deltaTime * 5 + .05f * Input.GetAxisRaw("Horizontal") * general.camera.transform.right * Time.deltaTime * 5 + 0.0f*general.camera.transform.up;
-            
-        }
-        Cursor.visible = !Input.GetMouseButton(0);
-
-        if (rotation.magnitude < 0.01f) rotation = Vector3.zero;
-        else rotation = new Vector3(
-            rotation.x * Mathf.Pow(0.05f, Time.deltaTime),
-            rotation.y * Mathf.Pow(0.05f, Time.deltaTime),
-            rotation.z * Mathf.Pow(0.05f, Time.deltaTime));
     }
+
+    private CharacterController cc;
+    private Vector3 playerVelocity;
+    private float playerSpeed = 2.0f;
+    private float gravityValue = -9.81f;
+    private float mX = 0f;
+    private float mY = 0f;
 }
