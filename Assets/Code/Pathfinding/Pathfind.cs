@@ -72,7 +72,9 @@ public class Pathfind : MonoBehaviour
                 colors[i.gridX * craterTerrainController.gridSizeY + i.gridY] = Color.red;
             }
 */
+            
             if (craterTerrainController.path.Contains(i)) tex.SetPixel(i.gridY, i.gridX, Color.blue);
+            
             else if (i.walkable && i.isVis) tex.SetPixel(i.gridY, i.gridX, Color.green);
             else if (!i.walkable && i.isVis) tex.SetPixel(i.gridY, i.gridX, Color.cyan);
             else if (i.walkable && !i.isVis) tex.SetPixel(i.gridY, i.gridX, Color.gray);
@@ -168,40 +170,46 @@ public class Pathfind : MonoBehaviour
 
         Vector2Int[] bestPos = new Vector2Int[10];
         for (int i = 0; i < 10; i++) {
-            Node n = craterTerrainController.path[i * (craterTerrainController.path.Count / 10)];
+            if (craterTerrainController.path.Count > 10)
+            {
+                Node n = craterTerrainController.path[i * (craterTerrainController.path.Count / 10)];
 
-            float bestScore = 10000000;
-            ComLinkNode? bestNode = null;
-            foreach (ComLinkNode cn in good) {
-                float score = cn.dist * 3 + Vector2.Distance(cn.pos, new Vector2(n.gridX, n.gridY)); // + what ever other modifier you want
-                float distToOtherNodes = 0;
 
-                foreach (Vector2Int p in bestPos) distToOtherNodes = Math.Max(Vector2.Distance(cn.pos, p), distToOtherNodes);
+                float bestScore = 10000000;
+                ComLinkNode? bestNode = null;
+                foreach (ComLinkNode cn in good)
+                {
+                    float score = cn.dist * 3 + Vector2.Distance(cn.pos, new Vector2(n.gridX, n.gridY)); // + what ever other modifier you want
+                    float distToOtherNodes = 0;
 
-                //score -= distToOtherNodes * distToOtherNodes * distToOtherNodes;
+                    foreach (Vector2Int p in bestPos) distToOtherNodes = Math.Max(Vector2.Distance(cn.pos, p), distToOtherNodes);
 
-                if (score < bestScore) {
-                    bestScore = score;
-                    bestNode = cn;
+                    //score -= distToOtherNodes * distToOtherNodes * distToOtherNodes;
+
+                    if (score < bestScore)
+                    {
+                        bestScore = score;
+                        bestNode = cn;
+                    }
                 }
+
+                bestPos[i] = (bestNode.HasValue) ? ((ComLinkNode)bestNode).pos : Vector2Int.zero;
+
+                Vector3 v = craterTerrainController.grid[bestPos[i].x, bestPos[i].y].worldPos;
+                Vector3 pos = new Vector3(v.z * -1f, -100, v.x);
+
+                RaycastHit rh;
+                Ray r = new Ray(pos, Vector3.up);
+                Debug.DrawRay(r.origin, r.direction * 200, Color.red, 1000);
+                Physics.Raycast(r, out rh, 200, 1 << 7);
+
+                GameObject go = GameObject.Instantiate(Resources.Load<GameObject>("prefabs/adc_Solstice_2"));
+                go.transform.eulerAngles = new Vector3(180, 0, 0);
+                go.name = bestPos[i].ToString();
+                go.transform.position = rh.point - new Vector3(0, 0.11f, 0);
+
+                previousLinks.Add(go);
             }
-
-            bestPos[i] = (bestNode.HasValue) ? ((ComLinkNode) bestNode).pos : Vector2Int.zero;
-
-            Vector3 v = craterTerrainController.grid[bestPos[i].x, bestPos[i].y].worldPos;
-            Vector3 pos =  new Vector3(v.z*-1f, -100, v.x);
-
-            RaycastHit rh;
-            Ray r = new Ray(pos, Vector3.up);
-            Debug.DrawRay(r.origin, r.direction * 200, Color.red, 1000);
-            Physics.Raycast(r, out rh, 200, 1 << 7);
-
-            GameObject go = GameObject.Instantiate(Resources.Load<GameObject>("prefabs/adc_Solstice_2"));
-            go.transform.eulerAngles = new Vector3(180, 0, 0);
-            go.name = bestPos[i].ToString();
-            go.transform.position = rh.point - new Vector3(0, 0.11f, 0);
-            
-            previousLinks.Add(go);
         }
     }
 

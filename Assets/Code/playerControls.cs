@@ -133,10 +133,10 @@ public class playerControls : MonoBehaviour {
         }
         if (master.currentState == programStates.interplanetary || master.currentState == programStates.planetaryTerrain) {
             
-            if (m==cameraModes.typical||master.currentState==programStates.planetaryTerrain)
+            if (m==cameraModes.typical)
             {
                 bodyRotation.update(cameraModes.typical);
-                if (Input.GetKeyDown(KeyCode.C)&& master.currentState != programStates.planetaryTerrain)
+                if (Input.GetKeyDown(KeyCode.C))
                 {
                     m=cameraModes.drone;
                 }
@@ -293,7 +293,7 @@ internal class bodyRotationalControls {
             {
                 if (Input.GetMouseButton(0)) { general.camera.transform.eulerAngles += new Vector3(-Input.GetAxisRaw("Mouse Y"), Input.GetAxisRaw("Mouse X"), 0.0f); }
                 
-                general.camera.transform.position += .05f*Input.GetAxisRaw("Vertical")* general.camera.transform.forward * Time.deltaTime * 5 + .05f * Input.GetAxisRaw("Horizontal") * general.camera.transform.right * Time.deltaTime * 5 + 0.0f*general.camera.transform.up;
+                general.camera.transform.position += .25f*Input.GetAxisRaw("Vertical")* general.camera.transform.forward * Time.deltaTime * 5 + .25f * Input.GetAxisRaw("Horizontal") * general.camera.transform.right * Time.deltaTime * 5 + 0.0f*general.camera.transform.up;
                 
             }
             Cursor.visible = !Input.GetMouseButton(0);

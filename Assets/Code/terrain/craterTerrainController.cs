@@ -78,7 +78,15 @@ public static class craterTerrainController
             GameObject go = GameObject.Instantiate(general.craterTerrainPrefab);
             go.name = "terrain";
             go.transform.parent = general.bodyParent;
-            go.transform.localPosition = Vector3.zero;
+            if (currentCrater.name == "regional")
+            {
+                go.transform.localPosition = new Vector3(4.75f, 0f, 1.34f);
+            }
+            else
+            {
+                go.transform.localPosition = Vector3.zero;
+            }
+            
             craterMat = go.GetComponent<MeshRenderer>().material;
             m = dmd.generate();
 
@@ -185,8 +193,8 @@ public static class craterTerrainController
                 */
                 if (getNodeData(new Vector2Int((int)startx, (int)starty), region).slope > 20) walkable = false;
                 bool isVis = tex.GetPixel(
-                    (int) (200f * ((float) x / (float) gridSizeX)),
-                    (int) (200f * ((float) y / (float) gridSizeY)))
+                    (int) (tex.width * ((float) x / (float) gridSizeX)),
+                    (int) (tex.width * ((float) y / (float) gridSizeY)))
                     == Color.green;
 
                 // TODO add vis data here

@@ -9,7 +9,7 @@ public class controller : MonoBehaviour {
     public Texture2D tex;
     public void Update() {
         if (Input.GetKeyDown("a")) {
-            //test();
+            test();
         }
     }
 
@@ -34,7 +34,7 @@ public class controller : MonoBehaviour {
         tex.Apply();
 
         byte[] data = tex.EncodeToPNG();
-        File.WriteAllBytes("C:/Users/leozw/Desktop/out.png", data);
+        File.WriteAllBytes("C:/Users/ltriv/Downloads/out.png", data);
     }
 
     public static planet moon;
@@ -56,8 +56,8 @@ public class controller : MonoBehaviour {
         //craterTerrainController.processRegion("leibnitz beta plateau", 20, 1);
         //craterTerrainController.processRegion("regional", 20, 1);
 
-        //globalMeshGenerator.folder = "C:/Users/ltriv/Downloads/ADC Files/global/out";
-        globalMeshGenerator.folder = "C:/Users/leozw/Desktop/ADC/global/out";
+        globalMeshGenerator.folder = "C:/Users/ltriv/Downloads/ADC Files/global/out";
+        //globalMeshGenerator.folder = "C:/Users/leozw/Desktop/ADC/global/out";
 
         master.onStateChange += craterTerrainController.onStateChange;
 
