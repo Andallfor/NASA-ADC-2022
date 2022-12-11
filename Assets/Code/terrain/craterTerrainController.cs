@@ -143,6 +143,7 @@ public static class craterTerrainController
             go.transform.localScale *= diff;
             craterTerrainController.registerMesh(go);
             worldSize = new Vector2(m.bounds.size.x * go.transform.localScale.x, m.bounds.size.z * go.transform.localScale.z);
+            Debug.Log(worldSize);
             nodeRadius = .01f;
             nodeDiameter = nodeRadius * 2;
             bottomRight = Vector3.zero - Vector3.right * worldSize.x / 2 - Vector3.forward * worldSize.y / 2;
@@ -157,7 +158,7 @@ public static class craterTerrainController
     {
         
         float meshSize = craterData[region].map.width;
-        float increment = 4000 / gridSizeX;
+        float increment = 4096 / gridSizeX;
         bool walkable = true;
         for (int x = 0; x < gridSizeX; x++)
         {
