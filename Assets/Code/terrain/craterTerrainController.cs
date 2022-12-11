@@ -361,6 +361,11 @@ public static class craterTerrainController
                 c.label.gameObject.SetActive(false);
                 c.button.enabled = false;
             }
+
+            updateScaleMap.show();
+            updateScaleMap.update(Resources.Load("textures/colorsee") as Texture2D, 0);
+
+            Resources.Load<Material>("materials/terrain").SetInt("_map", 0);
         }
         else if (e.previousState == programStates.planetaryTerrain)
         { // cleanup
@@ -384,6 +389,8 @@ public static class craterTerrainController
             currentCrater = null;
 
             clearMeshes();
+
+            updateScaleMap.hide();
         }
     }
 }

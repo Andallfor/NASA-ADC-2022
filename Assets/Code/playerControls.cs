@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
+
 public enum cameraModes
 {
     typical,
@@ -12,12 +14,14 @@ public enum cameraModes
 public class playerControls : MonoBehaviour {
     cameraModes m = cameraModes.typical;
     public GameObject marker, player,seeker,hider;
+    public Texture2D blind, see;
+    public updateScaleMap uScaleMap;
     private bool colorblind,paused;
     private Vector2 mpos;
     private Plane elevationPlane;
     private bool selected = false;
     private GameObject selectedObject = null;
-    private int height = 0;
+    private int height = 0, currentMap;
     private bodyRotationalControls bodyRotation;
     float times;
     GameObject canvas;
@@ -31,6 +35,12 @@ public class playerControls : MonoBehaviour {
     }
 
     void Update() {
+        if (Input.GetKeyDown("p")) {
+            master.incrementTime(0.5);
+        } else if (Input.GetKeyDown("o")) {
+            master.incrementTime(-0.5);
+        }
+
         /*if (master.currentState == programStates.planetaryTerrain)
         {
             mpos += new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
@@ -50,18 +60,21 @@ public class playerControls : MonoBehaviour {
                 paused = true;
             }
         }
+
         if (Input.GetKeyDown(KeyCode.Alpha6)) colorblind = !colorblind;
+        
         if (craterTerrainController.craterMat != null)
         {
             Material crater = craterTerrainController.craterMat;
             if (colorblind)
             {
-                crater.SetColor("_key1",new Color(100/255f,143/255f,255/255f,1));
-                crater.SetColor("_key2",new Color(120/255f,94/255f,240/255f,1));
+                crater.SetColor("_key5",new Color(100/255f,143/255f,255/255f,1));
+                crater.SetColor("_key4",new Color(120/255f,94/255f,240/255f,1));
                 crater.SetColor("_key3",new Color(220/255f,38/255f,127/255f,1));
-                crater.SetColor("_key4",new Color(254/255f,97/255f,0,1));
-                crater.SetColor("_key5",new Color(255/255f,176/255f,0,1));
+                crater.SetColor("_key2",new Color(254/255f,97/255f,0,1));
+                crater.SetColor("_key1",new Color(255/255f,176/255f,0,1));
 
+                bodyRotation.coloreye = bodyRotation.colorblind;
             }
             else
             {
@@ -72,9 +85,11 @@ public class playerControls : MonoBehaviour {
                 crater.SetColor("_key1", new Color(0,0,4/255f));
 /*                crater.SetColor("_key5", new Color(0,0,4));
 */                
-
+                bodyRotation.coloreye = bodyRotation.colorsee;
             }
         }
+
+        if (Input.GetKeyDown(KeyCode.Alpha6)) updateScaleMap.update(bodyRotation.coloreye);
         
         if (!master.initialized) return;
         if (master.currentState == programStates.planetaryTerrain && Input.GetMouseButtonDown(0)&&selected==false)
@@ -168,17 +183,25 @@ internal class bodyRotationalControls {
 
     public GameObject player;
 
+    public Texture2D colorblind, colorsee, coloreye;
+
+    public bodyRotationalControls() {
+        colorblind = Resources.Load("textures/colorblind") as Texture2D;
+        colorsee = Resources.Load("textures/colorsee") as Texture2D;
+        coloreye = colorsee;
+    }
+
     public void update(cameraModes mode) {
         if (Input.GetKeyDown(KeyCode.Space))
         {
             master.canvas.active = !master.canvas.active;
         }
-        if (master.currentState == programStates.planetaryTerrain&&Input.GetKeyDown(KeyCode.Alpha1)) { craterTerrainController.mode = 0; }
-        if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha2)) { craterTerrainController.mode = 1; }
-        if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha3)) { craterTerrainController.mode = 2; }
-        if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha4)) { craterTerrainController.mode = 3; }
-        if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha5)) { craterTerrainController.mode = 4; master.scale = 4; }
-        if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha7)) { craterTerrainController.mode = 5; }
+        if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha1)) { craterTerrainController.mode = 0; updateScaleMap.update(coloreye, 0);}
+        if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha2)) { craterTerrainController.mode = 1; updateScaleMap.update(coloreye, 1);}
+        if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha3)) { craterTerrainController.mode = 2; updateScaleMap.update(coloreye, 2);}
+        if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha4)) { craterTerrainController.mode = 3; updateScaleMap.update(coloreye, 3);}
+        if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha5)) { craterTerrainController.mode = 4; master.scale = 4; updateScaleMap.hide();}
+        if (master.currentState == programStates.planetaryTerrain && Input.GetKeyDown(KeyCode.Alpha7)) { craterTerrainController.mode = 5; updateScaleMap.hide();}
         craterTerrainController.colorUpdate();
 
         if (!inFirstPerson) {
@@ -201,6 +224,8 @@ internal class bodyRotationalControls {
                 mY = 0;
                 Cursor.lockState = CursorLockMode.Locked;
             }
+
+            if (Input.GetKey("i")) rotation.y = 0.05f;
 
             if (Input.GetMouseButtonDown(0)) planetFocusMousePosition = Input.mousePosition;
             else if (Input.GetMouseButton(0)) {

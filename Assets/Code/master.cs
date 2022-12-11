@@ -44,7 +44,7 @@ public static class master {
     /// <summary> Remembers the current state of the program (ex if we are display terrain or not). </summary>
     /// <remarks> See <see cref="changeState(programStates)"/> and <see cref="onStateChange"/> </remarks>
     public static programStates currentState {get; private set;} = programStates.interplanetary;
-    public static double timestep = 0.01;
+    public static double timestep = 0.0001;
     public const double defaultTimestep = 0.0001;
     #endregion
     #endregion VARIABLES
