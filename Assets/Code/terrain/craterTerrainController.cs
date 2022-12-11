@@ -182,6 +182,7 @@ public static class craterTerrainController
                 }
                 */
                 if (getNodeData(new Vector2Int((int)startx, (int)starty), region).slope > 20) walkable = false;
+                // TODO add vis data here
                 grid[x, y] = new Node(walkable, worldPoint, x, y);
             }
         }

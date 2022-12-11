@@ -96,9 +96,9 @@ public class controller : MonoBehaviour {
 
         master.referenceFrameBody = moon;
 
-        //new globalTerrainController(moon, true);
+        new globalTerrainController(moon, true);
         //await globalTerrainController.generateNormalMaps(moon);
-        //var d = globalMeshGenerator.requestGlobalTerrain("Luna", new Vector2Int(30, 0), new Vector2Int(0, 0), new Vector2Int(32000, 16000), 2, 4, false);
+        //var d = globalMeshGenerator.requestGlobalTerrain("Luna", new Vector2Int(30, 45), new Vector2Int(0, 0), new Vector2Int(32000, 16000), 2, 4, false);
         //var dd = globalMeshGenerator.generateDecompData(d);
         //
         //Mesh m = new Mesh();

@@ -10,7 +10,7 @@ public class updateScaleMap : MonoBehaviour {
     public void Awake() {self = this.gameObject; hide();}
     public static void update(Texture2D c, int map) {
         show();
-        self.transform.GetChild(5).GetComponent<RawImage>().texture = c;
+        self.transform.GetChild(6).GetComponent<RawImage>().texture = c;
 
         string key = "azimuth";
         string suffix = "°";
@@ -30,7 +30,7 @@ public class updateScaleMap : MonoBehaviour {
 
     public static void update(Texture2D c) {
         show();
-        self.transform.GetChild(5).GetComponent<RawImage>().texture = c;
+        self.transform.GetChild(6).GetComponent<RawImage>().texture = c;
     }
 
     public static void hide() {
