@@ -174,7 +174,7 @@ public static class craterTerrainController
     {
         Texture2D tex = Resources.Load<Texture2D>("maps/vis/" + currentCrater.name);
         float meshSize = craterData[region].map.width;
-        float increment = 4096 / gridSizeX;
+        float increment = 4096f / (float)gridSizeX;
         bool walkable = true;
         for (int x = 0; x < gridSizeX; x++)
         {
@@ -183,10 +183,10 @@ public static class craterTerrainController
                 
                 walkable = true;
                 Vector3 worldPoint = bottomRight + Vector3.right * (x * nodeDiameter + nodeRadius) + Vector3.forward * (nodeDiameter * y + nodeRadius);
-                float startx = Mathf.Floor(increment * x);
-                float starty = Mathf.Floor(increment * y);
-                /*
-                while (startx - increment * (x + 1) < 1 / increment)
+                float startx = Mathf.Round(increment * x);
+                float starty = Mathf.Round(increment * y);
+                
+               /* while (startx - increment * (x + 1) < 1 / increment)
                 {
                     while (starty - increment * (y + 1) < 1 / increment)
                     {
@@ -196,9 +196,9 @@ public static class craterTerrainController
 
                     }
                     startx += 1;
-                }
-                */
-                if (getNodeData(new Vector2Int((int)startx, (int)starty), region).slope > 20) walkable = false;
+                }*/
+                
+                if (getNodeData(new Vector2Int((int)startx, (int)starty), region).slope > 15) walkable = false;
                 bool isVis = tex.GetPixel(
                     (int) (tex.width * ((float) x / (float) gridSizeX)),
                     (int) (tex.width * ((float) y / (float) gridSizeY)))

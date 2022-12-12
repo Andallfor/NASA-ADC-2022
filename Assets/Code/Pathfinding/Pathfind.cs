@@ -122,7 +122,7 @@ public class Pathfind : MonoBehaviour
         hider.SetActive(master.currentState == programStates.planetaryTerrain && craterTerrainController.mode == 4);
         if (Input.GetKeyDown(KeyCode.Return) && master.currentState == programStates.planetaryTerrain)
         {
-            find(craterTerrainController.worldPosToNode(new Vector3(seeker.transform.position.z, 0, seeker.transform.position.x * -1)), craterTerrainController.worldPosToNode(new Vector3(hider.transform.position.z, 0, hider.transform.position.x * -1)));
+            find(craterTerrainController.worldPosToNode(new Vector3(seeker.transform.position.z, 0, seeker.transform.position.x * -1f)), craterTerrainController.worldPosToNode(new Vector3(hider.transform.position.z, 0, hider.transform.position.x * -1)));
             generateTexture();
             //byte[] bytes = generateTexture().EncodeToPNG();
             //if (general.host == "ltriv") File.WriteAllBytes("C:/Users/ltriv/Downloads/texturetest.png", bytes);
@@ -207,6 +207,7 @@ public class Pathfind : MonoBehaviour
                 go.transform.eulerAngles = new Vector3(180, 0, 0);
                 go.name = bestPos[i].ToString();
                 go.transform.position = rh.point - new Vector3(0, 0.11f, 0);
+                go.transform.localScale = new Vector3(.0001f, .0001f, .0001f);
 
                 previousLinks.Add(go);
             }
