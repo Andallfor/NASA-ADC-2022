@@ -159,6 +159,10 @@ public class playerControls : MonoBehaviour {
                 master.changeState(programStates.interplanetary);
             }
         }
+        if (Input.GetKeyDown("b"))
+        {
+            StartCoroutine(zoomSmooth());
+        }
     }
     IEnumerator yes()
     {
@@ -169,6 +173,14 @@ public class playerControls : MonoBehaviour {
             general.camera.transform.rotation =Quaternion.LookRotation(Vector3.RotateTowards(general.camera.transform.forward,( master.moon.transform.position-endPos).normalized, Mathf.Deg2Rad * step*Time.deltaTime*100, 10000f));
 
             general.camera.transform.position = Vector3.MoveTowards(general.camera.transform.position, endPos, step1*100*Time.deltaTime);
+            yield return null;
+        }
+    }
+    IEnumerator zoomSmooth()
+    {
+        while (true)
+        {
+            general.camera.fieldOfView += .05f;
             yield return null;
         }
     }
