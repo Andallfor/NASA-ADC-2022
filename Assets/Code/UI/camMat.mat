@@ -18,7 +18,7 @@ Material:
   stringTagMap:
     RenderType: Opaque
   disabledShaderPasses: []
-  m_SavedProperties:
+  m_SavedProperties: 
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:

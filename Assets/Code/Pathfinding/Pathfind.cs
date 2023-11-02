@@ -13,7 +13,7 @@ public class Pathfind : MonoBehaviour
         List<Node> closed = new List<Node>();
         open.Add(start);
         while (open.Count > 0)
-        {
+        { 
             Node current = open[0];
             for (int i = 1; i < open.Count; i++)
             {
